@@ -1,0 +1,21 @@
+{
+    "name": "sunong/stock_control",
+    "description": "stock control for sunong's app",
+    "type": "library",
+    "license": "GPL",
+    "authors": [
+        {
+            "name": "Javen",
+            "email": "w@juyii.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=5.5.9"
+    },
+    "autoload": {
+        "psr-4": {
+            "StockControl\\": "src/"
+        }
+    }
+}
