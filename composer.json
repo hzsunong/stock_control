@@ -1,6 +1,6 @@
 {
     "name": "sunong/stock_control",
-    "description": "stock control for sunong's app",
+    "description": "stock control for sunong's application",
     "type": "library",
     "license": "GPL",
     "authors": [
@@ -15,7 +15,7 @@
     },
     "autoload": {
         "psr-4": {
-            "StockControl\\": "src/"
+            "SuNong\\StockControl\\": "src/"
         }
     }
 }
