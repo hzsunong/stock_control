@@ -8,8 +8,8 @@ namespace SuNong\StockControl\Model;
 
 use SuNong\StockControl\Core;
 
-class Stock extends Core{
-    protected $table = 'stock_change_record';
+class StockChangeRecord extends Core{
+    protected $table;
 
     public function __construct(){
         parent::__construct();
