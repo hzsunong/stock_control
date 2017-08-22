@@ -16,8 +16,8 @@
     "autoload": {
         "psr-4": {
             "SuNong\\StockControl\\": "src/",
-            "SuNong\\StockControl\\Instock": "src/instock",
-            "SuNong\\StockControl\\Outstock": "src/outstock"
+            "SuNong\\StockControl\\Instock": "src/instock/",
+            "SuNong\\StockControl\\Outstock": "src/outstock/"
         }
     }
 }
