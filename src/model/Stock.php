@@ -42,10 +42,13 @@ class Stock extends Core{
         $stock_model=new Stock();
         $scr_model=new StockChangeRecord();
         foreach ($product_info as $product){
-            $product_id=$product['product_id'];
-            $quantity=$product['quantity'];
-            $price=$product['price'];
-            $amount_price=$price*$quantity;
+            $product_id=isset($product['product_id']) && is_numeric($product['product_id']) ? $product['product_id'] :null;
+            $quantity=isset($product['quantity']) && is_numeric($product['quantity']) ? $product['quantity'] :null;
+            $price=isset($product['price']) && is_numeric($product['price']) ? $product['price'] :null;
+            $amount_price=isset($product['amount']) && is_numeric($product['amount']) ? $product['amount'] :null;
+            if(!$product_id || !$quantity || (!$price && !$amount_price)) return false;
+            if($price===null) $price=number_format($amount_price/$quantity,0,'.','');
+            if($amount_price===null) $amount_price=number_format($price*$quantity,0,'.','');
             $stock_info=$stock_model->product_isexist_by_orgz_product($hq_code,$orgz_id,$product_id);
             $changed_inventory=$quantity+$stock_info->inventory;
             //对应商品库存信息不存在,则新建
@@ -72,6 +75,7 @@ class Stock extends Core{
                 $stock_id=$this->insertGetId($stock_arr);
             }else{
                 $stock_id=$stock_info->id;
+                $stock_arr['total_amount']=$amount_price;
                 if ($operation==1)
                 {
                     $stock_arr['instock_num'] = DB::raw("instock_num+$quantity");
