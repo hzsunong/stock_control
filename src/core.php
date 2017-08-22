@@ -148,7 +148,7 @@ class core{
         return $prefix.$now_date.$code_num;
     }
 
-    protected function add_stock_batch($hq_code,$orgz_id,$ralated_id,$genre,$product_info){
+    protected function add_stock_batch($hq_code,$orgz_id,$related_id,$genre,$product_info){
         $result = [];
         $details = [];
         $base = [
