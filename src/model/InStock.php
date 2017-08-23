@@ -9,5 +9,10 @@ namespace SuNong\StockControl\Model;
 use SuNong\StockControl\Core;
 
 class InStock extends Core{
-    protected $table = 'instock';
+    protected $table;
+
+    public function __construct(){
+        parent::__construct();
+        $this->table=$this->_instock;
+    }
 }

@@ -6,6 +6,7 @@
  */
 namespace SuNong\StockControl\Model;
 
+use Illuminate\Support\Facades\DB;
 use SuNong\StockControl\Core;
 
 class Stock extends Core{
@@ -41,7 +42,9 @@ class Stock extends Core{
         $now_time=date('Y-m-d H:i:s');
         $stock_model=new Stock();
         $scr_model=new StockChangeRecord();
+//        print_r($product_info);die;
         foreach ($product_info as $product){
+            //验证数据有效性
             $product_id=isset($product['product_id']) && is_numeric($product['product_id']) ? $product['product_id'] :null;
             $quantity=isset($product['quantity']) && is_numeric($product['quantity']) ? $product['quantity'] :null;
             $price=isset($product['price']) && is_numeric($product['price']) ? $product['price'] :null;
@@ -50,7 +53,6 @@ class Stock extends Core{
             if($price===null) $price=number_format($amount_price/$quantity,0,'.','');
             if($amount_price===null) $amount_price=number_format($price*$quantity,0,'.','');
             $stock_info=$stock_model->product_isexist_by_orgz_product($hq_code,$orgz_id,$product_id);
-            $changed_inventory=$quantity+$stock_info->inventory;
             //对应商品库存信息不存在,则新建
             if(!$stock_info){
                 $stock_arr = [
@@ -67,15 +69,21 @@ class Stock extends Core{
                 ];
                 if($operation==1){
                     $stock_arr['instock_num']=$quantity;
+                    $stock_arr['last_instock_date'] = $now_time;
                 }elseif($operation==2){
                     $stock_arr['outstock_num']=$quantity;
+                    $stock_arr['last_outstock_date'] = $now_time;
                 }else{
                     $stock_arr['sales_num']=$quantity;
+                    $stock_arr['last_sales_date'] = $now_time;
                 }
                 $stock_id=$this->insertGetId($stock_arr);
+
+                $changed_inventory=$quantity;
             }else{
                 $stock_id=$stock_info->id;
-                $stock_arr['total_amount']=$amount_price;
+                $stock_arr['total_amount']=DB::raw("total_amount+$amount_price");
+                $stock_arr['quantity']=DB::raw("quantity+$quantity");
                 if ($operation==1)
                 {
                     $stock_arr['instock_num'] = DB::raw("instock_num+$quantity");
@@ -91,10 +99,12 @@ class Stock extends Core{
                     $stock_arr['sales_num'] = DB::raw("sales_num+$quantity_abs");
                     $stock_arr['last_sales_date'] = $now_time;
                 }
+
                 $stock_model->where('hq_code', $hq_code)
                     ->where('orgz_id', $orgz_id)
-                    ->where('product_id', $product_id)
-                    ->update($stock_arr);
+                    ->where('product_id', $product_id)->update($stock_arr);
+
+                $changed_inventory=$quantity+$stock_info->quantity;
             }
 
             //增加库存变动记录数据
