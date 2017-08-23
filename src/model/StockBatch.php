@@ -257,7 +257,7 @@ class StockBatch extends Core{
 
                     $info = array($arr);
 
-                    $res = $this->add_stock_batch($hq_code, $orgz_id, $info, $related_id, $stock_change_genre);
+                    $res = $this->add_stock_batch($hq_code, $orgz_id, $info, $related_id, $stock_change_genre,$operate);
                     if (!isset($res['details']))
                     {
                         return false;
@@ -293,27 +293,23 @@ class StockBatch extends Core{
      * @param integer $genre 类型
      * @param array $product_info 数据示例
      * 商品信息 [ ['product_id'=>1,'quantity'=>5,'package'=>2,'spec_num'=>2.5,'spec_unit'=>'斤','supplier_id'=>null] ]
+     * @param integer $operation 1:入库单,2:出库单,3:销售
      * @param bool $update_stock_price 是否更新库存价格
      * @return array ['stock_batch_id'=>55,'detail'=>$detail]
      */
-    public function add_stock_batch($hq_code,$orgz_id,$related_id,$genre,$product_info,$update_stock_price=false){
-        $result = [];
-        $details = [];
-        $now_time=date('Y-m-d H:i:s');
-        $base = [
-            'hq_code' => $hq_code,
-            'orgz_id' => $orgz_id,
-            'related_id' => $related_id,
-            'genre' => $genre,
-            'code' => $this->order_create_code($hq_code,$this->_stock_batch,'PC',4),
-            'created_at' => $now_time
-        ];
-        $id = $this->insertGetId($base);
-
-        $result['stock_batch_id'] = $id;
+    public function add_stock_batch($hq_code,$orgz_id,$related_id,$genre,$product_info,$operation,$update_stock_price=false){
         $stock = new Stock();
         $sbc_model = new StockBatchContent();
         $sbf_model = new StockBatchFlow();
+
+        $result = [];
+        $details = [];
+        $now_time=date('Y-m-d H:i:s');
+        $base = ['hq_code' => $hq_code, 'orgz_id' => $orgz_id, 'related_id' => $related_id, 'genre' => $genre,
+            'code' => $this->order_create_code($hq_code,$this->_stock_batch,'PC',4), 'created_at' => $now_time];
+        $id = $this->insertGetId($base);
+
+        $result['stock_batch_id'] = $id;
         foreach ($product_info as $item)
         {
             // 构建批次明细数据
@@ -368,12 +364,15 @@ class StockBatch extends Core{
                 'package' => $detail['package'],
                 'total_amount' => $detail['total_amount'],
                 'genre' => $genre,
-                'related_id' => $related_id
+                'related_id' => $related_id,
+                'created_at'=>$now_time
             );
             $sbf_model->insert($flow);
         }
 
         $result['details'] = $details;
+
+        $stock->update_product_stock($hq_code,$orgz_id,$related_id,$genre,$product_info,$operation);
         return $result;
     }
 }

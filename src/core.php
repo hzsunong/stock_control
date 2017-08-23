@@ -1,6 +1,5 @@
 <?php
 /**
- * Created by PhpStorm.
  * User: hayashikoubun
  * Date: 2017/8/22
  * Time: 上午9:38
@@ -10,10 +9,6 @@ namespace SuNong\StockControl;
 use App\Models\StockChangeRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
-use SuNong\StockControl\Model\Stock;
-use SuNong\StockControl\Model\StockBatch;
-use SuNong\StockControl\Model\StockBatchContent;
-use SuNong\StockControl\Model\StockBatchFlow;
 
 class core extends Model{
 

@@ -42,7 +42,6 @@ class Stock extends Core{
         $now_time=date('Y-m-d H:i:s');
         $stock_model=new Stock();
         $scr_model=new StockChangeRecord();
-//        print_r($product_info);die;
         foreach ($product_info as $product){
             //验证数据有效性
             $product_id=isset($product['product_id']) && is_numeric($product['product_id']) ? $product['product_id'] :null;
@@ -100,7 +99,7 @@ class Stock extends Core{
                     $stock_arr['last_sales_date'] = $now_time;
                 }
 
-                $stock_model->where('hq_code', $hq_code)
+                $add=$stock_model->where('hq_code', $hq_code)
                     ->where('orgz_id', $orgz_id)
                     ->where('product_id', $product_id)->update($stock_arr);
 

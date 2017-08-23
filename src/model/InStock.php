@@ -8,11 +8,50 @@ namespace SuNong\StockControl\Model;
 
 use SuNong\StockControl\Core;
 
-class InStock extends Core{
+class Instock extends Core{
     protected $table;
 
     public function __construct(){
         parent::__construct();
         $this->table=$this->_instock;
+    }
+
+    /**
+     * @author Javen <w@juyii.com>
+     * @date 2017-08-23
+     * @param string $hq_code
+     * @return string new code
+     */
+    public function create_code($hq_code){
+        return $this->order_create_code($hq_code,$this->table,'RK');
+    }
+
+    /**
+     * @author Javen <w@juyii.com>
+     * @date 2017-08-23
+     * @param string $hq_code
+     * @param integer $orgz_id
+     * @param integer $instock_id
+     * @return null|array
+     */
+    public function get_unconfirmed_list_by_instock_id($hq_code,$orgz_id,$instock_id){
+        $data=$this->select('instock_content.product_id','instock_content.spec_unit','instock_content.spec_num',
+            'instock_content.price','instock_content.amount','instock_content.quantity','instock_content.package')
+            ->join('instock_content','instock_content.instock_id','=','instock.id')
+            ->where('instock.id',$instock_id)->where('instock.hq_code',$hq_code)->where('instock.orgz_id',$orgz_id)
+            ->where('instock.confirmed',0)->where('instock.status',1)->where('instock_content.status',1)->get();
+        if(empty($data)) return null;
+        return $data->toArray();
+    }
+
+    /**
+     * @author Javen <w@juyii.com>
+     * @date 2017-08-23
+     * @param integer $instock_id 入库单id
+     * @return mixed 获取入库单类型
+     */
+    public function get_genre_by_instock_id($instock_id){
+        $data=$this->select('genre')->where('id',$instock_id)->first();
+        return $data;
     }
 }
