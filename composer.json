@@ -9,6 +9,7 @@
             "email": "w@juyii.com"
         }
     ],
+    "minimum-stability": "dev",
     "require": {
         "php": ">=5.5.9"
     },
