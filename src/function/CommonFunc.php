@@ -27,7 +27,7 @@ class CommonFunc{
      * @param null|mixed $request 传入$request 将所有参数代入日志
      * 为了便于日志记录统一管理
      */
-    protected function log_record($type,$user_id,$msg,$request=null){
+    protected function log_record($type,$key,$msg,$request=null){
         $debug = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3)[1];
         $class = $debug['class'];
         $function = $debug['function'];
@@ -57,7 +57,7 @@ class CommonFunc{
 
         $msg=$ip.' -- '. $_SERVER['REQUEST_METHOD'] .' '.$_SERVER['REQUEST_URI'].' -- '.
             $_SERVER['HTTP_USER_AGENT'].' -- '. $_SERVER['REDIRECT_STATUS']. ' -- '.$_SERVER['HTTP_REFERER'].' -- '.
-            "line:$line".' -- '. "userId:$user_id" .' -- stock_control:' .$msg;
+            "line:$line".' -- '. "key:$key" .' -- stock_control:' .$msg;
         if($request!==null){
 
             switch (gettype($request)){

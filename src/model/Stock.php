@@ -115,4 +115,17 @@ class Stock extends Core{
         }
         return true;
     }
+
+    /**
+     * @author Javen <w@juyii.com>
+     * @date 2017-08-23
+     * @param string $hq_code
+     * @param integer $orgz_id
+     * @param array $product_ids 商品id列表
+     * @return mixed 通过商品id列表获取库存信息列表
+     */
+    public function get_list_by_products($hq_code,$orgz_id,$product_ids){
+        $data=$this->where('hq_code',$hq_code)->where('orgz_id',$orgz_id)->whereIn('product_id',$product_ids)->get();
+        return $data;
+    }
 }

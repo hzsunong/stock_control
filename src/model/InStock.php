@@ -54,4 +54,39 @@ class Instock extends Core{
         $data=$this->select('genre')->where('id',$instock_id)->first();
         return $data;
     }
+
+    /**
+     * @author Javen <w@juyii.com>
+     * @date 2017-08-23
+     * @param string $hq_code
+     * @param integer $orgz_id
+     * @param integer $limit
+     * @param integer $offset
+     * @param null|integer $genre
+     * @param null|integer $confirmed
+     * @return null|array 获取入库单列表
+     */
+    public function get_instock_list($hq_code,$orgz_id,$limit=20,$offset=0,$genre=null,$confirmed=null){
+        $data=$this->where('hq_code',$hq_code)->where('orgz_id',$orgz_id);
+        if($genre!=null) $data->where('genre',$genre);
+        if($confirmed!=null) $data->where('confirmed',$confirmed);
+        $result['total']=$data->count();
+        if($result['total']==0) return null;
+        $result['data']=$data->get();
+        return $result;
+    }
+
+    /**
+     * @author Javen <w@juyii.com>
+     * @date 2017-08-23
+     * @param string $hq_code
+     * @param integer $orgz_id
+     * @param integer $instock_id
+     * @return mixed 获取入库单信息
+     */
+    public function get_instock_by_id($hq_code,$orgz_id,$instock_id){
+        $data=$this->where('id',$instock_id)->where('hq_code',$hq_code)->where('orgz_id',$orgz_id)->first();
+        return $data;
+    }
+
 }
