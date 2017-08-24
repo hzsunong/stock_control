@@ -21,14 +21,14 @@ class StockFunc extends CommonFunc{
     public function stock_list($hq_code,$orgz_id,$product_ids){
         $start_time=$this->get_micro_time();
         $params=func_get_args();
-        $this->log_record('info',$creator_id,'入库单新增开始',$params);
+        $this->log_record('info','null','库存列表信息查询开始',$params);
         $hq_code=trim($hq_code)!=''?$hq_code:null;
         $orgz_id=is_numeric($orgz_id)?$orgz_id:null;
         $product_ids=is_array($product_ids) && !empty($product_ids) ? $product_ids : null;
 
         if(!$hq_code || !$orgz_id || !$product_ids){
             $result=['code'=>'10000','msg'=>'参数缺失'];
-            $this->log_record('error',$creator_id,'库存信息查询失败:参数缺失',$params);
+            $this->log_record('error','null','库存信息查询失败:参数缺失',$params);
             return $result;
         }
 
@@ -36,7 +36,7 @@ class StockFunc extends CommonFunc{
         $stock_list=$stock_model->get_list_by_products($hq_code,$orgz_id,$product_ids);
         if($stock_list!=null) $stock_list=$stock_list->toArray();
         $result=['code'=>'0','msg'=>'库存信息查询成功','data'=>$stock_list];
-        $this->log_record('info',$creator_id,'库存信息查询成功 耗时:'.($this->get_micro_time()-$start_time),$params);
+        $this->log_record('info','null','库存信息查询成功 耗时:'.($this->get_micro_time()-$start_time),$params);
         return $result;
     }
 }

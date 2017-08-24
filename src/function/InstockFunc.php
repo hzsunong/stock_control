@@ -80,15 +80,15 @@ class InstockFunc extends CommonFunc{
                 $ic_data['package']=isset($product['package']) && is_numeric($product['package'])?$product['package']:null;
                 $ic_data['remark']=isset($product['remark']) && trim($product['remark'])!=''?$product['remark']:null;
 
-                if(!$product_id || !$spec_unit || !$price || !$quantity || !$package){
+                if(!$ic_data['product_id'] || !$ic_data['spec_unit'] || !$ic_data['price'] || !$ic_data['quantity'] || !$ic_data['package']){
                     DB::rollBack();
                     $this->log_record('error',$creator_id,'商品详情参数缺失',$params);
                     return ['code'=>'10000','msg'=>'商品详情参数缺失'];
                 }
                 $ic_data['spec_num']=isset($product['spec_num']) && is_numeric($product['spec_num'])
-                    ? $product['spec_num'] : number_format($quantity/$package,3,'.','');
+                    ? $product['spec_num'] : number_format($ic_data['quantity']/$ic_data['package'],3,'.','');
                 $ic_data['amount']=isset($product['amount']) && is_numeric($product['amount'])
-                    ? $product['amount'] : number_format($price*$quantity,0,'.','');
+                    ? $product['amount'] : number_format($ic_data['price']*$ic_data['quantity'],0,'.','');
 
                 $content_id=$ic_model->insertGetId($ic_data);
                 $response['contents'][]=['product_id'=>$ic_data['product_id'],'instock_content_id'=>$content_id];
@@ -114,7 +114,7 @@ class InstockFunc extends CommonFunc{
      * @param integer $auditor_id 审核人id
      * @return array 审核入库单
      */
-    public function confirm_instock($hq_code,$instock_id,$auditor_id){
+    public function confirm_instock($hq_code,$orgz_id,$instock_id,$auditor_id){
         $start_time=$this->get_micro_time();
         $now_time=date('Y-m-d H:i:s');
         $params=func_get_args();
@@ -168,9 +168,8 @@ class InstockFunc extends CommonFunc{
      */
     public function instock_list($hq_code,$orgz_id,$limit=20,$offset=0,$genre=null,$confirmed=null){
         $start_time=$this->get_micro_time();
-        $now_time=date('Y-m-d H:i:s');
         $params=func_get_args();
-        $this->log_record('info',$auditor_id,'入库单列表获取开始',$params);
+        $this->log_record('info','null','入库单列表获取开始',$params);
         $hq_code=trim($hq_code)!=''?$hq_code:null;
         $orgz_id=is_numeric($orgz_id)?$orgz_id:null;
         $limit=is_numeric($limit)?$limit:20;
@@ -180,7 +179,7 @@ class InstockFunc extends CommonFunc{
 
         if(!$hq_code || !$orgz_id){
             $result=['code'=>'10000','msg'=>'参数缺失'];
-            $this->log_record('error',$auditor_id,'入库单列表获取失败:参数缺失',$params);
+            $this->log_record('error','null','入库单列表获取失败:参数缺失',$params);
             return $result;
         }
 
@@ -188,11 +187,11 @@ class InstockFunc extends CommonFunc{
         $instock_list=$instock_model->get_instock_list($hq_code,$orgz_id,$limit,$offset,$genre,$confirmed);
         if($instock_list==null){
             $result=['code'=>'0','msg'=>'入库单列表获取成功:但没有符合筛选条件的数据'];
-            $this->log_record('info',$auditor_id,'入库单列表获取成功:但没有符合筛选条件的数据 耗时:'.($this->get_micro_time()-$start_time),$params);
+            $this->log_record('info','null','入库单列表获取成功:但没有符合筛选条件的数据 耗时:'.($this->get_micro_time()-$start_time),$params);
             return $result;
         }
         $result=['code'=>'0','msg'=>'入库单列表获取成功','total'=>$instock_list['total'],'data'=>$instock_list['data']];
-        $this->log_record('info',$auditor_id,'入库单列表获取成功 耗时:'.($this->get_micro_time()-$start_time),$params);
+        $this->log_record('info','null','入库单列表获取成功 耗时:'.($this->get_micro_time()-$start_time),$params);
         return $result;
     }
 
@@ -206,16 +205,15 @@ class InstockFunc extends CommonFunc{
      */
     public function instock_detail($hq_code,$orgz_id,$instock_id){
         $start_time=$this->get_micro_time();
-        $now_time=date('Y-m-d H:i:s');
         $params=func_get_args();
-        $this->log_record('info',$auditor_id,'入库单列表获取开始',$params);
+        $this->log_record('info','null','入库单列表获取开始',$params);
         $hq_code=trim($hq_code)!=''?$hq_code:null;
         $orgz_id=is_numeric($orgz_id)?$orgz_id:null;
         $instock_id=is_numeric($instock_id)?$instock_id:null;
 
         if(!$hq_code || !$orgz_id || !$instock_id){
             $result=['code'=>'10000','msg'=>'参数缺失'];
-            $this->log_record('error',$auditor_id,'入库单详情获取失败:参数缺失',$params);
+            $this->log_record('error','null','入库单详情获取失败:参数缺失',$params);
             return $result;
         }
 
@@ -225,12 +223,13 @@ class InstockFunc extends CommonFunc{
         $instock_content=$ic_model->get_detail_by_instock_id($instock_id);
         if($instock_data==null || $instock_content==null){
             $result=['code'=>'10000','msg'=>'入库单详情获取失败:状态已变更,或单据不存在'];
-            $this->log_record('error',$auditor_id,'入库单详情获取失败:状态已变更,或单据不存在',$params);
+            $this->log_record('error','null','入库单详情获取失败:状态已变更,或单据不存在',$params);
             return $result;
         }
         $instock_data=$instock_data->toArray();
         $instock_content=$instock_content->toArray();
         $result=['code'=>'0','msg'=>'入库单详情获取成功','data'=>['instock_data'=>$instock_data,'content_data'=>$instock_content]];
         $this->log_record('info','null','入库单详情获取成功 耗时:'.($this->get_micro_time()-$start_time),$params);
+        return $result;
     }
 }
