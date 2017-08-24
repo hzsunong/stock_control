@@ -121,7 +121,7 @@ class StockBatch extends Core{
                                 'stock_batch_content_id'=>$record->content_id,
                                 'quantity'=>-$record->inventory,
                                 'product_id'=>$record->product_id,
-                                'price'=>-$record->price,
+                                'price'=>$record->price,
                                 'spec_num'=>$record->spec_num,
                                 'amount'=>number_format(-$record->inventory*$record->price,0,'.','')
                             ];
@@ -147,7 +147,7 @@ class StockBatch extends Core{
                                 'stock_batch_content_id'=>$record->content_id,
                                 'quantity'=>-$left_quantity,
                                 'product_id'=>$record->product_id,
-                                'price'=>-$record->price,
+                                'price'=>$record->price,
                                 'spec_num'=>$record->spec_num,
                                 'amount'=>number_format(-$left_quantity*$record->price,0,'.','')
                             ];
@@ -210,7 +210,7 @@ class StockBatch extends Core{
                         'stock_batch_content_id'=>$record->content_id,
                         'quantity'=>-$left_quantity,
                         'product_id'=>$record->product_id,
-                        'price'=>-$record->price,
+                        'price'=>$record->price,
                         'spec_num'=>$record->spec_num,
                         'amount'=>number_format(-$left_quantity*$record->price,0,'.','')
                     ];
@@ -271,8 +271,9 @@ class StockBatch extends Core{
                     $deducted_price += ($left_quantity*$batch['price']);
                 }
             }
+            //更新库存
             $item['amount']=number_format(-$deducted_price,0,'.','');
-            $item['price']=-$item['price'];
+            $item['price']=$item['price'];
             $item['quantity']=-$item['quantity'];
             $stock_model->update_product_stock($hq_code,$orgz_id,$related_id,$stock_change_genre,[$item],$operate);
             $deducted_amount_price+=$item['amount'];

@@ -93,7 +93,7 @@ class CreateOperationTable extends Migration
             $table->integer('amount')->comment('出库金额');
             $table->float('package', 16, 3)->comment('出库件数');
             $table->float('quantity', 16, 3)->comment('出库数量');
-            $table->integer('related_batch')->nullable()->comment('相关批次');
+            $table->integer('batch_content_id')->nullable()->comment('相关批次');
             $table->text('remark')->nullable()->comment('备注');
             $table->tinyInteger('status')->default(1)->comment('状态: -1.删除, 1.启用');
             $table->timestamps();

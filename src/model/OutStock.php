@@ -35,7 +35,7 @@ class Outstock extends Core{
      * @return null|array 获取未审核出库单详情列表
      */
     public function get_unconfirmed_list_by_outstock_id($hq_code,$orgz_id,$outstock_id){
-        $data=$this->select('outstock_content.id as content_id',
+        $data=$this->select('outstock_content.id as content_id','outstock_content.remark',
             'outstock_content.product_id','outstock_content.spec_unit','outstock_content.spec_num',
             'outstock_content.price','outstock_content.amount','outstock_content.quantity','outstock_content.package')
             ->join('outstock_content','outstock_content.outstock_id','=','outstock.id')

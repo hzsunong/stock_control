@@ -30,7 +30,7 @@ class OutstockFunc extends CommonFunc{
      * @param null $remark
      * @return array
      */
-    public function new_outstock($hq_code,$orgz_id,$creator_id,$genre,$related_id,$products,$target_orgz_id=null,$delivery_date=null,$remark=null){
+    public function new_outstock($hq_code,$orgz_id,$creator_id,$genre,$related_id,$products,$auditor_id=null,$target_orgz_id=null,$delivery_date=null,$remark=null){
         $start_time=$this->get_micro_time();
         $params=func_get_args();
         $this->log_record('info',$creator_id,'出库单新增开始',$params);
@@ -82,17 +82,17 @@ class OutstockFunc extends CommonFunc{
                 $oc_data['package']=isset($product['package']) && is_numeric($product['package'])?$product['package']:null;
                 $oc_data['remark']=isset($product['remark']) && trim($product['remark'])!=''?$product['remark']:null;
 
-                if(!$product_id || !$spec_unit || !$price || !$quantity || !$package){
+                if(!$oc_data['product_id'] || !$oc_data['spec_unit'] || !$oc_data['price'] || !$oc_data['quantity'] || !$oc_data['package']){
                     DB::rollBack();
                     $this->log_record('error',$creator_id,'商品详情参数缺失',$params);
                     return ['code'=>'10000','msg'=>'商品详情参数缺失'];
                 }
                 $oc_data['spec_num']=isset($product['spec_num']) && is_numeric($product['spec_num'])
-                    ? $product['spec_num'] : number_format($quantity/$package,3,'.','');
+                    ? $product['spec_num'] : number_format($oc_data['quantity']/$oc_data['package'],3,'.','');
                 $oc_data['amount']=isset($product['amount']) && is_numeric($product['amount'])
-                    ? $product['amount'] : number_format($price*$quantity,0,'.','');
+                    ? $product['amount'] : number_format($oc_data['price']*$oc_data['quantity'],0,'.','');
 
-                $content_id=$ic_model->insertGetId($oc_data);
+                $content_id=$oc_model->insertGetId($oc_data);
                 $response['contents'][]=['product_id'=>$oc_data['product_id'],'outstock_content_id'=>$content_id];
                 $amount+=$oc_data['amount'];
             }
@@ -134,6 +134,7 @@ class OutstockFunc extends CommonFunc{
         }
 
         $outstock_model=new Outstock();
+        $oc_model=new OutstockContent();
         $stock_batch_model=new StockBatch();
         $products=$outstock_model->get_unconfirmed_list_by_outstock_id($hq_code,$orgz_id,$outstock_id);
         if($products==null){
@@ -144,10 +145,9 @@ class OutstockFunc extends CommonFunc{
         $genre=$outstock_model->get_genre_by_outstock_id($outstock_id);
 
         $flag=[];
+        $products_map=collect($products)->keyBy('product_id')->toArray();
         DB::beginTransaction();
         try{
-            $outstock_model->where('id',$outstock_id)
-                ->update(['confirmed'=>1,'auditor_id'=>$auditor_id,'confirmed_date'=>$now_time]);
             $result=$stock_batch_model->deduct_stock_batch($hq_code,$orgz_id,$outstock_id,$genre,$products,2);
             if(!$result){
                 $result=['code'=>'10000','msg'=>'出库单审核失败:库存变动失败'];
@@ -155,11 +155,36 @@ class OutstockFunc extends CommonFunc{
                 DB::rollBack();
                 return $result;
             }
-            $deducted_amount=$result['amount'];
+            $deducted_amount=-$result['amount'];
             $detail=$result['detail'];
+            $outstock_model->where('id',$outstock_id)
+                ->update(['confirmed'=>1,'auditor_id'=>$auditor_id,'confirmed_date'=>$now_time,'total_amount'=>$deducted_amount]);
+
+            foreach ($detail as $item){
+                $stock_batch_content_id=$item['stock_batch_content_id'];
+                $product_id=$item['product_id'];
+                $quantity=-$item['quantity'];
+                $price=$item['price'];
+                $amount=$item['amount'];
+                $spec_num=$products_map[$product_id]['spec_num'];
+                $spec_unit=$products_map[$product_id]['spec_unit'];
+                $remark=$products_map[$product_id]['remark'];
+                $package=number_format($quantity/$spec_num,3,'.','');
+                if(!in_array($product_id,$flag)){
+                    $oc_model->where('outstock_id',$outstock_id)->where('product_id',$product_id)
+                        ->update(['price'=>$price,'amount'=>$amount,'quantity'=>$quantity,'package'=>$package,
+                            'batch_content_id'=>$stock_batch_content_id]);
+                    $flag[]=$product_id;
+                }else{
+                    $oc_data=['outstock_id'=>$outstock_id,'product_id'=>$product_id,'spec_unit'=>$spec_unit,
+                        'spec_num'=>$spec_num,'price'=>$price,'amount'=>$amount,'quantity'=>$quantity,'package'=>$package,
+                        'batch_content_id'=>$stock_batch_content_id,'remark'=>$remark,'created_at'=>$now_time];
+                    $oc_model->insert($oc_data);
+                }
+            }
             DB::commit();
             $this->log_record('info',$auditor_id,'出库单审核成功 耗时:'.($this->get_micro_time()-$start_time).' 更新明细:'.json_encode($result),$params);
-            return ['code'=>'0','msg'=>'出库单审核成功','data'=>$outstock_id];
+            return ['code'=>'0','msg'=>'出库单审核成功','bill_id'=>$outstock_id,'amount'=>$deducted_amount,'data'=>$detail];
         }catch (\Exception $e){
             DB::rollBack();
             $this->log_record('info',$auditor_id,'出库单审核失败 原因:'.json_encode($e->getMessage()),$params);
@@ -167,82 +192,82 @@ class OutstockFunc extends CommonFunc{
         }
     }
 
-    /**
-     * @author Javen <w@juyii.com>
-     * @date 2017-08-23
-     * @param string $hq_code
-     * @param integer $orgz_id
-     * @param integer $limit 长度
-     * @param integer $offset 偏移量
-     * @param null|integer $genre 类型
-     * @param null|integer $confirmed 审核状态
-     * @return array 获取入库单列表
-     */
-    public function instock_list($hq_code,$orgz_id,$limit=20,$offset=0,$genre=null,$confirmed=null){
-        $start_time=$this->get_micro_time();
-        $now_time=date('Y-m-d H:i:s');
-        $params=func_get_args();
-        $this->log_record('info',$auditor_id,'入库单列表获取开始',$params);
-        $hq_code=trim($hq_code)!=''?$hq_code:null;
-        $orgz_id=is_numeric($orgz_id)?$orgz_id:null;
-        $limit=is_numeric($limit)?$limit:20;
-        $offset=is_numeric($offset)?$offset:0;
-        $genre=is_numeric($genre)?$genre:null;
-        $confirmed=is_numeric($confirmed)?$confirmed:null;
-
-        if(!$hq_code || !$orgz_id){
-            $result=['code'=>'10000','msg'=>'参数缺失'];
-            $this->log_record('error',$auditor_id,'入库单列表获取失败:参数缺失',$params);
-            return $result;
-        }
-
-        $instock_model=new Instock();
-        $instock_list=$instock_model->get_instock_list($hq_code,$orgz_id,$limit,$offset,$genre,$confirmed);
-        if($instock_list==null){
-            $result=['code'=>'0','msg'=>'入库单列表获取成功:但没有符合筛选条件的数据'];
-            $this->log_record('info',$auditor_id,'入库单列表获取成功:但没有符合筛选条件的数据 耗时:'.($this->get_micro_time()-$start_time),$params);
-            return $result;
-        }
-        $result=['code'=>'0','msg'=>'入库单列表获取成功','total'=>$instock_list['total'],'data'=>$instock_list['data']];
-        $this->log_record('info',$auditor_id,'入库单列表获取成功 耗时:'.($this->get_micro_time()-$start_time),$params);
-        return $result;
-    }
-
-    /**
-     * @author Javen <w@juyii.com>
-     * @date 2017-08-23
-     * @param string $hq_code
-     * @param integer $orgz_id
-     * @param integer $instock_id 入库单id
-     * @return array 通过入库单id获取单据详情
-     */
-    public function instock_detail($hq_code,$orgz_id,$instock_id){
-        $start_time=$this->get_micro_time();
-        $now_time=date('Y-m-d H:i:s');
-        $params=func_get_args();
-        $this->log_record('info',$auditor_id,'入库单列表获取开始',$params);
-        $hq_code=trim($hq_code)!=''?$hq_code:null;
-        $orgz_id=is_numeric($orgz_id)?$orgz_id:null;
-        $instock_id=is_numeric($instock_id)?$instock_id:null;
-
-        if(!$hq_code || !$orgz_id || !$instock_id){
-            $result=['code'=>'10000','msg'=>'参数缺失'];
-            $this->log_record('error',$auditor_id,'入库单详情获取失败:参数缺失',$params);
-            return $result;
-        }
-
-        $instock_model=new Instock();
-        $ic_model=new InstockContent();
-        $instock_data=$instock_model->get_instock_by_id($hq_code,$orgz_id,$instock_id);
-        $instock_content=$ic_model->get_detail_by_instock_id($instock_id);
-        if($instock_data==null || $instock_content==null){
-            $result=['code'=>'10000','msg'=>'入库单详情获取失败:状态已变更,或单据不存在'];
-            $this->log_record('error',$auditor_id,'入库单详情获取失败:状态已变更,或单据不存在',$params);
-            return $result;
-        }
-        $instock_data=$instock_data->toArray();
-        $instock_content=$instock_content->toArray();
-        $result=['code'=>'0','msg'=>'入库单详情获取成功','data'=>['instock_data'=>$instock_data,'content_data'=>$instock_content]];
-        $this->log_record('info','null','入库单详情获取成功 耗时:'.($this->get_micro_time()-$start_time),$params);
-    }
+//    /**
+//     * @author Javen <w@juyii.com>
+//     * @date 2017-08-23
+//     * @param string $hq_code
+//     * @param integer $orgz_id
+//     * @param integer $limit 长度
+//     * @param integer $offset 偏移量
+//     * @param null|integer $genre 类型
+//     * @param null|integer $confirmed 审核状态
+//     * @return array 获取入库单列表
+//     */
+//    public function instock_list($hq_code,$orgz_id,$limit=20,$offset=0,$genre=null,$confirmed=null){
+//        $start_time=$this->get_micro_time();
+//        $now_time=date('Y-m-d H:i:s');
+//        $params=func_get_args();
+//        $this->log_record('info',$auditor_id,'入库单列表获取开始',$params);
+//        $hq_code=trim($hq_code)!=''?$hq_code:null;
+//        $orgz_id=is_numeric($orgz_id)?$orgz_id:null;
+//        $limit=is_numeric($limit)?$limit:20;
+//        $offset=is_numeric($offset)?$offset:0;
+//        $genre=is_numeric($genre)?$genre:null;
+//        $confirmed=is_numeric($confirmed)?$confirmed:null;
+//
+//        if(!$hq_code || !$orgz_id){
+//            $result=['code'=>'10000','msg'=>'参数缺失'];
+//            $this->log_record('error',$auditor_id,'入库单列表获取失败:参数缺失',$params);
+//            return $result;
+//        }
+//
+//        $instock_model=new Instock();
+//        $instock_list=$instock_model->get_instock_list($hq_code,$orgz_id,$limit,$offset,$genre,$confirmed);
+//        if($instock_list==null){
+//            $result=['code'=>'0','msg'=>'入库单列表获取成功:但没有符合筛选条件的数据'];
+//            $this->log_record('info',$auditor_id,'入库单列表获取成功:但没有符合筛选条件的数据 耗时:'.($this->get_micro_time()-$start_time),$params);
+//            return $result;
+//        }
+//        $result=['code'=>'0','msg'=>'入库单列表获取成功','total'=>$instock_list['total'],'data'=>$instock_list['data']];
+//        $this->log_record('info',$auditor_id,'入库单列表获取成功 耗时:'.($this->get_micro_time()-$start_time),$params);
+//        return $result;
+//    }
+//
+//    /**
+//     * @author Javen <w@juyii.com>
+//     * @date 2017-08-23
+//     * @param string $hq_code
+//     * @param integer $orgz_id
+//     * @param integer $instock_id 入库单id
+//     * @return array 通过入库单id获取单据详情
+//     */
+//    public function instock_detail($hq_code,$orgz_id,$instock_id){
+//        $start_time=$this->get_micro_time();
+//        $now_time=date('Y-m-d H:i:s');
+//        $params=func_get_args();
+//        $this->log_record('info',$auditor_id,'入库单列表获取开始',$params);
+//        $hq_code=trim($hq_code)!=''?$hq_code:null;
+//        $orgz_id=is_numeric($orgz_id)?$orgz_id:null;
+//        $instock_id=is_numeric($instock_id)?$instock_id:null;
+//
+//        if(!$hq_code || !$orgz_id || !$instock_id){
+//            $result=['code'=>'10000','msg'=>'参数缺失'];
+//            $this->log_record('error',$auditor_id,'入库单详情获取失败:参数缺失',$params);
+//            return $result;
+//        }
+//
+//        $instock_model=new Instock();
+//        $ic_model=new InstockContent();
+//        $instock_data=$instock_model->get_instock_by_id($hq_code,$orgz_id,$instock_id);
+//        $instock_content=$ic_model->get_detail_by_instock_id($instock_id);
+//        if($instock_data==null || $instock_content==null){
+//            $result=['code'=>'10000','msg'=>'入库单详情获取失败:状态已变更,或单据不存在'];
+//            $this->log_record('error',$auditor_id,'入库单详情获取失败:状态已变更,或单据不存在',$params);
+//            return $result;
+//        }
+//        $instock_data=$instock_data->toArray();
+//        $instock_content=$instock_content->toArray();
+//        $result=['code'=>'0','msg'=>'入库单详情获取成功','data'=>['instock_data'=>$instock_data,'content_data'=>$instock_content]];
+//        $this->log_record('info','null','入库单详情获取成功 耗时:'.($this->get_micro_time()-$start_time),$params);
+//    }
 }
