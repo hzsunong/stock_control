@@ -28,7 +28,7 @@ class StockFunc extends CommonFunc{
 
         if(!$hq_code || !$orgz_id || !$product_ids){
             $result=['code'=>'10000','msg'=>'参数缺失'];
-            $this->log_record('error','null','库存信息查询失败:参数缺失',$params);
+            $this->log_record('error',$creator_id,'库存信息查询失败:参数缺失',$params);
             return $result;
         }
 
@@ -36,7 +36,7 @@ class StockFunc extends CommonFunc{
         $stock_list=$stock_model->get_list_by_products($hq_code,$orgz_id,$product_ids);
         if($stock_list!=null) $stock_list=$stock_list->toArray();
         $result=['code'=>'0','msg'=>'库存信息查询成功','data'=>$stock_list];
-        $this->log_record('info','null','库存信息查询成功 耗时:'.($this->get_micro_time()-$start_time),$params);
+        $this->log_record('info',$creator_id,'库存信息查询成功 耗时:'.($this->get_micro_time()-$start_time),$params);
         return $result;
     }
 }

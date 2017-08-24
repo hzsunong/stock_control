@@ -278,10 +278,8 @@ class StockBatch extends Core{
             $deducted_amount_price+=$item['amount'];
         }
 
-        if($stock_change_genre==4 || $stock_change_genre==8){
-            return $deducted_amount_price;
-        }
-        return $changed_detail;
+        $result=['amount'=>$deducted_amount_price,'detail'=>$changed_detail];
+        return $result;
     }
 
     /**

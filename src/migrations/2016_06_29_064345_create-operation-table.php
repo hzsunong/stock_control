@@ -63,10 +63,10 @@ class CreateOperationTable extends Migration
             $table->char('code', 32)->comment('编号');
             $table->char('hq_code', 16)->comment('公司编码');
             $table->integer('orgz_id')->unsigned()->comment('创建单据的组织ID');
-            $table->integer('total_amount')->comment('单据金额');
             $table->tinyInteger('genre')->default(0)
                 ->comment('出库类型：0：出库单，1: 采购单据,2: 调拨 3: 退仓 4:配送差异 5:加工原料 6:供应商退货 7:门店要货 8:网单销售 9:红冲 10:销售出库 11:配送中心直配 12:配送中心销售');
             $table->integer('creator_id')->comment('录入人ID');
+            $table->integer('total_amount')->default(0)->comment('单据金额');
             $table->tinyInteger('confirmed')->default(0)->comment('是否审核：0.未审核，1.已审核，2.红冲');
             $table->integer('target_orgz_id')->nullable()->comment('出库目标组织ID');
             $table->integer('related_id')->nullable()->comment('相关单据id');
@@ -85,15 +85,15 @@ class CreateOperationTable extends Migration
         Schema::create('outstock_content', function (Blueprint $table) {
             $table->increments('id')->comment('明细ID');
             $table->integer('outstock_id')->unsigned()->comment('出库单ID');
-            $table->integer('related_batch')->unsigned()->nullable()->comment('相关批次');
             $table->integer('product_id')->unsigned()->comment('商品ID');
             $table->float('spec_num', 16, 3)->comment('规格');
             $table->string('spec_unit', 32)->comment('最小销售规格单位');
             $table->integer('delivery_price')>comment('出库价格: 单位分');
-            $table->integer('price')->comment('出库价格: 单位(元), 含税');
+            $table->integer('price')->comment('出库价格: 分');
             $table->integer('amount')->comment('出库金额');
             $table->float('package', 16, 3)->comment('出库件数');
             $table->float('quantity', 16, 3)->comment('出库数量');
+            $table->integer('related_batch')->nullable()->comment('相关批次');
             $table->text('remark')->nullable()->comment('备注');
             $table->tinyInteger('status')->default(1)->comment('状态: -1.删除, 1.启用');
             $table->timestamps();
