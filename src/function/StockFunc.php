@@ -7,6 +7,8 @@
 namespace SuNong\StockControl\Func;
 
 use Illuminate\Support\Facades\DB;
+use SuNong\StockControl\Model\Instock;
+use SuNong\StockControl\Model\Outstock;
 use SuNong\StockControl\Model\Stock;
 use SuNong\StockControl\Model\StockBatch;
 
@@ -130,6 +132,64 @@ class StockFunc extends CommonFunc{
         $result=['code'=>'0','msg'=>'销售扣减库存成功','amount'=>$result['amount'],'data'=>$result['detail']];
         $this->log_record('error','null','销售扣减库存成功 耗时:'.($this->get_micro_time()-$start_time),$params);
         return $result;
+    }
 
+    public function stock_inventory($hq_code,$orgz_id,$inventory_id,$operator,$products){
+        $start_time=$this->get_micro_time();
+        $params=func_get_args();
+        $this->log_record('info','null','盘点库存开始',$params);
+        $hq_code=trim($hq_code)!=''?$hq_code:null;
+        $orgz_id=is_numeric($orgz_id)?$orgz_id:null;
+        $inventory_id=is_numeric($inventory_id)?$inventory_id:null;
+        $operator=is_numeric($operator)?$operator:null;
+        $products=is_array($products) && !empty($products) ? $products : null;
+
+        if(!$hq_code || !$orgz_id || !$inventory_id || !$operator || !$products){
+            $result=['code'=>'10000','msg'=>'参数缺失'];
+            $this->log_record('error','null','盘点库存失败:参数缺失',$params);
+            return $result;
+        }
+
+        $stock_model=new Stock();
+        $instock_func=new InstockFunc();
+        $outstock_func=new OutstockFunc();
+
+        //对比库存数据,筛选盘亏盘盈商品
+        $instock_list=[];
+        $outstock_list=[];
+        $product_ids=collect($products)->pluck('product_id')->toArray();
+        $product_info=$stock_model->get_inventory_by_products($hq_code,$orgz_id,$product_ids);
+        if($product_info==null){
+            $result=['code'=>'10000','msg'=>'盘点库存失败:所选择商品没有库存信息'];
+            $this->log_record('error','null','盘点库存失败:所选择商品没有库存信息',$params);
+            return $result;
+        }
+        $product_map=$product_info->keyBy('product_id')->toArray();
+        foreach ($products as $product){
+            $product_diff=['product_id'=>$product['product_id'],'after_quantity'=>$product['quantity'],
+                'before_quantity'=>$product_map[$product['product_id']]['quantity'],'price'=>$product['price']];
+            $product_diff['change_quantity']=$product_diff['after_quantity']-$product_diff['before_quantity'];
+
+            if($product_diff['change_quantity']>0){
+                $instock_list[]=$product_diff;
+            }elseif($product_diff['change_quantity']<0){
+                $outstock_list[]=$product_diff;
+            }
+        }
+
+        //构建入库单或出库单
+        $instock_id=null;
+        $outstock_id=null;
+        if(!empty($instock_list)){
+            $instock_id=$instock_func->new_instock($hq_code,$orgz_id,$operator,18,$inventory_id,$instock_list,null,'盘点生成入库单',$operator);
+            $result=$instock_func->confirm_instock($hq_code,$orgz_id,$instock_id,$operator,false);
+            $amount=$result['amount'];
+            $detail=$result['detail'];
+        }
+        if(!empty($outstock_list)){
+            $outstock_id=$outstock_func->new_outstock($hq_code,$orgz_id,$operator,19,$inventory_id,$outstock_list,
+                $operator,null,null,'盘点生成出库单');
+            $result=$outstock_func->confirm_outstock($hq_code,$orgz_id,$outstock_id,$operator,false);
+        }
     }
 }

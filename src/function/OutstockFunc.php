@@ -30,7 +30,8 @@ class OutstockFunc extends CommonFunc{
      * @param null $remark
      * @return array
      */
-    public function new_outstock($hq_code,$orgz_id,$creator_id,$genre,$related_id,$products,$auditor_id=null,$target_orgz_id=null,$delivery_date=null,$remark=null){
+    public function new_outstock($hq_code,$orgz_id,$creator_id,$genre,$related_id,$products,$auditor_id=null,
+                                 $target_orgz_id=null,$delivery_date=null,$remark=null){
         $start_time=$this->get_micro_time();
         $params=func_get_args();
         $this->log_record('info',$creator_id,'出库单新增开始',$params);
@@ -97,10 +98,11 @@ class OutstockFunc extends CommonFunc{
             }
             $outstock_model->where('id',$outstock_id)->update(['total_amount'=>$amount]);
             DB::commit();
-            $this->log_record('info',$creator_id,'出库单新增成功 id:'.$outstock_id,$params);
             //立即审核
+            $this->log_record('info',$creator_id,'出库单新增成功'.' 耗时:'.($this->get_micro_time()-$start_time).' id:'.$outstock_id,$params);
+
             if($is_confirm) $this->confirm_outstock($hq_code,$orgz_id,$outstock_id,$auditor_id);
-            return ['code'=>'0','msg'=>'出库单新增成功 耗时:'.($this->get_micro_time()-$start_time),$params];
+            return ['code'=>'0','msg'=>'出库单新增成功',$outstock_id];
         }catch (\Exception $exception){
             DB::rollBack();
             $this->log_record('error',$creator_id,'出库单新增失败,原因:'.$exception->getMessage(),$params);
