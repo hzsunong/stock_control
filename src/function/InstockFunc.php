@@ -67,7 +67,6 @@ class InstockFunc extends CommonFunc{
                 'genre'=>$genre,'creator_id'=>$creator_id, 'supplier_id'=>$supplier_id,'related_id'=>$related_id,
                 'remark'=>$remark,'created_at'=>$now_time];
 
-            if(is_numeric($auditor_id))
             $instock_id=$instock_model->insertGetId($instock_data);
             $response['instock_id']=$instock_id;
             $amount=0;

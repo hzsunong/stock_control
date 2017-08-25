@@ -19,11 +19,11 @@ class OutstockContent extends Core{
     /**
      * @author Javen <w@juyii.com>
      * @date 2017-08-23
-     * @param integer $instock_id
+     * @param integer $outstock_id
      * @return mixed 获取入库单明细信息
      */
-    public function get_detail_by_instock_id($instock_id){
-        $data=$this->where('instock_id',$instock_id)->where('status',1)->get();
+    public function get_detail_by_outstock_id($outstock_id){
+        $data=$this->where('outstock_id',$outstock_id)->where('status',1)->get();
         return $data;
     }
 }
