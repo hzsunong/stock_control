@@ -167,7 +167,6 @@ class InstockFunc extends CommonFunc{
      */
     public function instock_list($hq_code,$orgz_id,$limit=20,$offset=0,$genre=null,$confirmed=null){
         $start_time=$this->get_micro_time();
-        $now_time=date('Y-m-d H:i:s');
         $params=func_get_args();
         $this->log_record('info','null','入库单列表获取开始',$params);
         $hq_code=trim($hq_code)!=''?$hq_code:null;
@@ -205,7 +204,6 @@ class InstockFunc extends CommonFunc{
      */
     public function instock_detail($hq_code,$orgz_id,$instock_id){
         $start_time=$this->get_micro_time();
-        $now_time=date('Y-m-d H:i:s');
         $params=func_get_args();
         $this->log_record('info','null','入库单列表获取开始',$params);
         $hq_code=trim($hq_code)!=''?$hq_code:null;
@@ -231,5 +229,6 @@ class InstockFunc extends CommonFunc{
         $instock_content=$instock_content->toArray();
         $result=['code'=>'0','msg'=>'入库单详情获取成功','data'=>['instock_data'=>$instock_data,'content_data'=>$instock_content]];
         $this->log_record('info','null','入库单详情获取成功 耗时:'.($this->get_micro_time()-$start_time),$params);
+        return $result;
     }
 }

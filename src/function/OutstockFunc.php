@@ -204,7 +204,6 @@ class OutstockFunc extends CommonFunc{
      */
     public function outstock_list($hq_code,$orgz_id,$limit=20,$offset=0,$genre=null,$confirmed=null){
         $start_time=$this->get_micro_time();
-        $now_time=date('Y-m-d H:i:s');
         $params=func_get_args();
         $this->log_record('info','null','出库单列表获取开始',$params);
         $hq_code=trim($hq_code)!=''?$hq_code:null;
@@ -238,11 +237,10 @@ class OutstockFunc extends CommonFunc{
      * @param string $hq_code
      * @param integer $orgz_id
      * @param integer $outstock_id 出库单id
-     * @return array 通过入库单id获取单据详情
+     * @return array 通过出库单id获取单据详情
      */
     public function outstock_detail($hq_code,$orgz_id,$outstock_id){
         $start_time=$this->get_micro_time();
-        $now_time=date('Y-m-d H:i:s');
         $params=func_get_args();
         $this->log_record('info','null','出库单列表获取开始',$params);
         $hq_code=trim($hq_code)!=''?$hq_code:null;
@@ -268,5 +266,6 @@ class OutstockFunc extends CommonFunc{
         $outstock_content=$outstock_content->toArray();
         $result=['code'=>'0','msg'=>'出库单详情获取成功','data'=>['outstock_data'=>$outstock_data,'content_data'=>$outstock_content]];
         $this->log_record('info','null','出库单详情获取成功 耗时:'.($this->get_micro_time()-$start_time),$params);
+        return $result;
     }
 }

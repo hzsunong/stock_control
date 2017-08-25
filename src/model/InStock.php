@@ -66,7 +66,7 @@ class Instock extends Core{
      * @param null|integer $confirmed
      * @return null|array 获取入库单列表
      */
-    public function get_intstock_list($hq_code,$orgz_id,$limit=20,$offset=0,$genre=null,$confirmed=null){
+    public function get_instock_list($hq_code,$orgz_id,$limit=20,$offset=0,$genre=null,$confirmed=null){
         $data=$this->where('hq_code',$hq_code)->where('orgz_id',$orgz_id);
         if($genre!=null) $data->where('genre',$genre);
         if($confirmed!=null) $data->where('confirmed',$confirmed);
