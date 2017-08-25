@@ -54,31 +54,32 @@ class Stock extends Core{
             $stock_info=$stock_model->product_isexist_by_orgz_product($hq_code,$orgz_id,$product_id);
             //对应商品库存信息不存在,则新建
             if(!$stock_info){
-                $stock_arr = [
-                    'hq_code' => $hq_code,
-                    'orgz_id' => $orgz_id,
-                    'product_id' => $product_id,
-                    'price' => $price,
-                    'quantity' => $quantity,
-                    'total_amount' => $amount_price,
-                    'sales_num' => 0,
-                    'instock_num'=>0,
-                    'outstock_num'=>0,
-                    'created_at' => date('Y-m-d H:i:s')
-                ];
-                if($operation==1){
-                    $stock_arr['instock_num']=$quantity;
-                    $stock_arr['last_instock_date'] = $now_time;
-                }elseif($operation==2){
-                    $stock_arr['outstock_num']=$quantity;
-                    $stock_arr['last_outstock_date'] = $now_time;
-                }else{
-                    $stock_arr['sales_num']=$quantity;
-                    $stock_arr['last_sales_date'] = $now_time;
-                }
-                $stock_id=$this->insertGetId($stock_arr);
-
-                $changed_inventory=$quantity;
+                return false;
+//                $stock_arr = [
+//                    'hq_code' => $hq_code,
+//                    'orgz_id' => $orgz_id,
+//                    'product_id' => $product_id,
+//                    'price' => $price,
+//                    'quantity' => $quantity,
+//                    'total_amount' => $amount_price,
+//                    'sales_num' => 0,
+//                    'instock_num'=>0,
+//                    'outstock_num'=>0,
+//                    'created_at' => date('Y-m-d H:i:s')
+//                ];
+//                if($operation==1){
+//                    $stock_arr['instock_num']=$quantity;
+//                    $stock_arr['last_instock_date'] = $now_time;
+//                }elseif($operation==2){
+//                    $stock_arr['outstock_num']=$quantity;
+//                    $stock_arr['last_outstock_date'] = $now_time;
+//                }else{
+//                    $stock_arr['sales_num']=$quantity;
+//                    $stock_arr['last_sales_date'] = $now_time;
+//                }
+//                $stock_id=$this->insertGetId($stock_arr);
+//
+//                $changed_inventory=$quantity;
             }else{
                 $stock_id=$stock_info->id;
                 $stock_arr['total_amount']=DB::raw("total_amount+$amount_price");
@@ -99,7 +100,7 @@ class Stock extends Core{
                     $stock_arr['last_sales_date'] = $now_time;
                 }
 
-                $add=$stock_model->where('hq_code', $hq_code)
+                $stock_model->where('hq_code', $hq_code)
                     ->where('orgz_id', $orgz_id)
                     ->where('product_id', $product_id)->update($stock_arr);
 
@@ -126,6 +127,19 @@ class Stock extends Core{
      */
     public function get_list_by_products($hq_code,$orgz_id,$product_ids){
         $data=$this->where('hq_code',$hq_code)->where('orgz_id',$orgz_id)->whereIn('product_id',$product_ids)->get();
+        return $data;
+    }
+
+    /**
+     * @author Javen <w@juyii.com>
+     * @date 2017-08-23
+     * @param string $hq_code
+     * @param integer $orgz_id
+     * @param integer $product_id
+     * @return mixed 通过商品id获取商品库存信息
+     */
+    public function get_product_info_by_product_id($hq_code,$orgz_id,$product_id){
+        $data=$this->where('hq_code',$hq_code)->where('orgz_id',$orgz_id)->where('product_id',$product_id)->first();
         return $data;
     }
 }

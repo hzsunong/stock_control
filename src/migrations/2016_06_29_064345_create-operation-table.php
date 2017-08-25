@@ -107,7 +107,7 @@ class CreateOperationTable extends Migration
             $table->integer('orgz_id')->unsigned()->comment('库存所属组织ID');
             $table->integer('product_id')->unsigned()->comment('商品ID');
             $table->integer('price')->comment('最新批次单价：分');
-            $table->integer('total_amount')->comment('库存金额：分');
+            $table->integer('total_amount')->default(0)->comment('库存金额：分');
             $table->float('quantity', 16, 3)->comment('库存数量');
             $table->float('instock_num', 16, 3)->default(0)->comment('累计入库数量');
             $table->float('outstock_num', 16, 3)->default(0)->comment('累计出库数量');

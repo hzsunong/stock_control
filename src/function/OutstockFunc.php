@@ -99,7 +99,7 @@ class OutstockFunc extends CommonFunc{
             DB::commit();
             $this->log_record('info',$creator_id,'出库单新增成功 id:'.$outstock_id,$params);
             //立即审核
-            if($is_confirm) $this->confirm_outstock($hq_code,$outstock_id,$auditor_id);
+            if($is_confirm) $this->confirm_outstock($hq_code,$orgz_id,$outstock_id,$auditor_id);
             return ['code'=>'0','msg'=>'出库单新增成功 耗时:'.($this->get_micro_time()-$start_time),$params];
         }catch (\Exception $exception){
             DB::rollBack();
@@ -149,8 +149,8 @@ class OutstockFunc extends CommonFunc{
         try{
             $result=$stock_batch_model->deduct_stock_batch($hq_code,$orgz_id,$outstock_id,$genre,$products,2);
             if(!$result){
-                $result=['code'=>'10000','msg'=>'出库单审核失败:库存变动失败'];
-                $this->log_record('error',$auditor_id,'出库单审核失败:库存变动失败',$params);
+                $result=['code'=>'10000','msg'=>'出库单审核失败:库存变动失败或库存信息不存在'];
+                $this->log_record('error',$auditor_id,'出库单审核失败:库存变动失败或库存信息不存在',$params);
                 DB::rollBack();
                 return $result;
             }

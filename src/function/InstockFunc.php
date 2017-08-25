@@ -26,10 +26,11 @@ class InstockFunc extends CommonFunc{
      * @param null|integer $supplier_id 供应商id
      * @param null|string $remark 备注
      * @param null|integer $auditor_id 审核人id  传值则为立即审核
+     * @param bool  $update_stock_price 是否更新库存价格
      * @return array
      */
     public function new_instock($hq_code,$orgz_id,$creator_id,$genre,$related_id,$products,$supplier_id=null,
-                                $remark=null, $auditor_id=null){
+                                $remark=null, $auditor_id=null,$update_stock_price=false){
         $start_time=$this->get_micro_time();
         $params=func_get_args();
         $this->log_record('info',$creator_id,'入库单新增开始',$params);
@@ -96,7 +97,7 @@ class InstockFunc extends CommonFunc{
             $instock_model->where('id',$instock_id)->update(['total_amount'=>$amount]);
             DB::commit();
             $this->log_record('info',$creator_id,'入库单新增成功 id:'.$instock_id,$params);
-            if($is_confirm) $this->confirm_instock($hq_code,$instock_id,$auditor_id);
+            if($is_confirm) $this->confirm_instock($hq_code,$instock_id,$auditor_id,$update_stock_price);
             return ['code'=>'0','msg'=>'入库单新增成功 耗时:'.($this->get_micro_time()-$start_time),$params];
         }catch (\Exception $exception){
             DB::rollBack();
@@ -113,7 +114,7 @@ class InstockFunc extends CommonFunc{
      * @param integer $auditor_id 审核人id
      * @return array 审核入库单
      */
-    public function confirm_instock($hq_code,$orgz_id,$instock_id,$auditor_id){
+    public function confirm_instock($hq_code,$orgz_id,$instock_id,$auditor_id,$update_stock_price=false){
         $start_time=$this->get_micro_time();
         $now_time=date('Y-m-d H:i:s');
         $params=func_get_args();
@@ -143,10 +144,17 @@ class InstockFunc extends CommonFunc{
         try{
             $instock_model->where('id',$instock_id)
                 ->update(['confirmed'=>1,'auditor_id'=>$auditor_id,'confirmed_date'=>$now_time]);
-            $result=$stock_batch_model->add_stock_batch($hq_code,$orgz_id,$instock_id,$genre,$products,1);
-            DB::commit();
-            $this->log_record('info',$auditor_id,'入库单审核成功 耗时:'.($this->get_micro_time()-$start_time).' 更新明细:'.json_encode($result),$params);
-            return ['code'=>'0','msg'=>'入库单审核成功','data'=>$instock_id];
+            $result=$stock_batch_model->add_stock_batch($hq_code,$orgz_id,$instock_id,$genre,$products,1,$update_stock_price);
+            if($result){
+                DB::commit();
+                $this->log_record('info',$auditor_id,'入库单审核成功 耗时:'.($this->get_micro_time()-$start_time).' 更新明细:'.json_encode($result),$params);
+                return ['code'=>'0','msg'=>'入库单审核成功','data'=>$instock_id];
+            }else{
+                DB::rollBack();
+                $this->log_record('info',$auditor_id,'入库单审核失败 耗时:'.($this->get_micro_time()-$start_time).' 库存变动失败或库存信息不存在',$params);
+                return ['code'=>'10000','msg'=>'入库单审核失败 库存变动失败或库存信息不存在','data'=>null];
+
+            }
         }catch (\Exception $e){
             DB::rollBack();
             $this->log_record('info',$auditor_id,'入库单审核失败 原因:'.json_encode($e->getMessage()),$params);
