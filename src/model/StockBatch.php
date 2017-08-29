@@ -305,7 +305,7 @@ class StockBatch extends Core{
             $detail['spec_unit']=isset($item['spec_unit']) && trim($item['spec_unit'])!=null?$item['spec_unit']:null;
             $detail['supplier_id']=isset($item['supplier_id']) && is_numeric($item['supplier_id'])?$item['supplier_id']:null;
 
-            if(!$detail['product_id'] || !$detail['quantity'] || !$detail['package'] || !$detail['price']) return false;
+            if(!$detail['product_id'] || !$detail['quantity'] || !$detail['package'] || !is_numeric($detail['price'])) return false;
 
             $detail['total_amount'] = number_format($detail['price'] * $detail['quantity'],0,'.','');
             $amount+=$detail['total_amount'];
