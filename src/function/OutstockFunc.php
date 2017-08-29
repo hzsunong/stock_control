@@ -151,6 +151,13 @@ class OutstockFunc extends CommonFunc{
             return $result;
         }
         $genre=$outstock_model->get_genre_by_outstock_id($outstock_id);
+        if($genre!=null){
+            $genre=$genre->genre;
+        }else{
+            $result=['code'=>'10000','msg'=>'出库单审核失败:单据不存在'];
+            $this->log_record('error',$auditor_id,'出库单审核失败:单据不存在',$params);
+            return $result;
+        }
 
         $flag=[];
         $products_map=collect($products)->keyBy('product_id')->toArray();

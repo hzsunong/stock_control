@@ -146,6 +146,13 @@ class InstockFunc extends CommonFunc{
             return $result;
         }
         $genre=$instock_model->get_genre_by_instock_id($instock_id);
+        if($genre!=null){
+            $genre=$genre->genre;
+        }else{
+            $result=['code'=>'10000','msg'=>'入库单审核失败:单据不存在'];
+            $this->log_record('error',$auditor_id,'入库单审核失败:单据不存在',$params);
+            return $result;
+        }
 
         DB::beginTransaction();
         try{
