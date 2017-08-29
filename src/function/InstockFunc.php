@@ -103,6 +103,13 @@ class InstockFunc extends CommonFunc{
             if(isset($instock_response) && $instock_response['code']=='0'){
                 $result['amount']=$amount;
                 $result['detail']=$instock_response['detail'];
+            }elseif(isset($instock_response) && $instock_response['code']!='0'){
+                $this->log_record('error',$creator_id,'入库单新增失败,原因:'.json_encode($instock_response['data']),$params);
+                return ['code'=>'10000','msg'=>'入库单新增失败','data'=>$instock_response['data']];
+            }else{
+                $this->log_record('error',$creator_id,'入库单新增失败,原因未知',$params);
+                return ['code'=>'10000','msg'=>'入库单新增失败,原因未知','data'=>[]];
+
             }
             $this->log_record('info',$creator_id,'入库单新增成功 id:'.$instock_id.' 耗时:'.($this->get_micro_time()-$start_time),$params);
             return $result;

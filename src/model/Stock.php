@@ -48,7 +48,7 @@ class Stock extends Core{
             $quantity=isset($product['quantity']) && is_numeric($product['quantity']) ? $product['quantity'] :null;
             $price=isset($product['price']) && is_numeric($product['price']) ? $product['price'] :null;
             $amount_price=isset($product['amount']) && is_numeric($product['amount']) ? $product['amount'] :null;
-            if(!$product_id || !$quantity || (!$price && !$amount_price)) return false;
+            if(!$product_id || !$quantity || (!is_numeric($price) && !is_numeric($amount_price))) return false;
             if($price===null) $price=number_format($amount_price/$quantity,0,'.','');
             if($amount_price===null) $amount_price=number_format($price*$quantity,0,'.','');
             $stock_info=$stock_model->product_isexist_by_orgz_product($hq_code,$orgz_id,$product_id);
