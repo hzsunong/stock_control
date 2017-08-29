@@ -98,7 +98,7 @@ class InstockFunc extends CommonFunc{
             DB::commit();
             $result=['code'=>'0','msg'=>'入库单新增成功','bill_id'=>$instock_id];
             if($is_confirm){
-                $instock_response=$this->confirm_instock($hq_code,$instock_id,$auditor_id,$update_stock_price);
+                $instock_response=$this->confirm_instock($hq_code,$orgz_id,$instock_id,$auditor_id,$update_stock_price);
             }
             if(isset($instock_response) && $instock_response['code']=='0'){
                 $result['amount']=$amount;
