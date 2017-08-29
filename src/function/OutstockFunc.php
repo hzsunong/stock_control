@@ -82,7 +82,7 @@ class OutstockFunc extends CommonFunc{
                 $oc_data['package']=isset($product['package']) && is_numeric($product['package'])?$product['package']:null;
                 $oc_data['remark']=isset($product['remark']) && trim($product['remark'])!=''?$product['remark']:null;
 
-                if(!$oc_data['product_id'] || !$oc_data['spec_unit'] || !$oc_data['price'] || !$oc_data['quantity'] || !$oc_data['package']){
+                if(!$oc_data['product_id'] || !$oc_data['spec_unit'] || !is_numeric($oc_data['price']) || !$oc_data['quantity'] || !$oc_data['package']){
                     DB::rollBack();
                     $this->log_record('error',$creator_id,'商品详情参数缺失',$params);
                     return ['code'=>'10000','msg'=>'商品详情参数缺失'];
