@@ -65,10 +65,10 @@ class StockBatch extends Core{
      * 库存变动类型 特殊处理 <4:报损 2:盘点>
      *            出库相关 <1:销售出库 10:调拨出库 11:门店退仓出库 3:门店要货出库 8:加工原料 5:门店配送差异  6:网单销售 12:供应商退货 18:配送中心销售>
      *            入库相关 <7:销售退货 13:调拨入库 14:门店退仓入库 0:门店要货入库 9:加工成品 15:配送差异确认 16:配送差异驳回 17:采购>
-     * @param integer    $operate               1:入库单,2:出库单,3:销售
+     * @param integer    $operation               1:入库单,2:出库单,3:销售
      * @return mixed                            根据类型返回扣减明细记录数组或扣减总价
      */
-    public function deduct_stock_batch($hq_code, $orgz_id, $related_id,$stock_change_genre=1, $product_info,$operate)
+    public function deduct_stock_batch($hq_code, $orgz_id, $related_id,$stock_change_genre=1, $product_info,$operation)
     {
         $stock_model=new Stock();
         // 扣减变动明细
@@ -79,7 +79,6 @@ class StockBatch extends Core{
         $join_table = 'stock_batch_content';
         foreach ($product_info as $item)
         {
-
             $deducted_price=0;
             $left_quantity = $item['quantity'];
             $this->select('stock_batch.id as stock_batch_id', 'stock_batch.hq_code as hq_code',
@@ -121,7 +120,7 @@ class StockBatch extends Core{
                                 'stock_batch_content_id'=>$record->content_id,
                                 'quantity'=>-$record->inventory,
                                 'product_id'=>$record->product_id,
-                                'price'=>-$record->price,
+                                'price'=>$record->price,
                                 'spec_num'=>$record->spec_num,
                                 'amount'=>number_format(-$record->inventory*$record->price,0,'.','')
                             ];
@@ -147,7 +146,7 @@ class StockBatch extends Core{
                                 'stock_batch_content_id'=>$record->content_id,
                                 'quantity'=>-$left_quantity,
                                 'product_id'=>$record->product_id,
-                                'price'=>-$record->price,
+                                'price'=>$record->price,
                                 'spec_num'=>$record->spec_num,
                                 'amount'=>number_format(-$left_quantity*$record->price,0,'.','')
                             ];
@@ -171,7 +170,6 @@ class StockBatch extends Core{
                         return false;
                     }
                 });
-
             //如果剩余库存不足以扣减数量,新增负批次
             if ($left_quantity > 0) {
                 // 查找最近的负批次
@@ -210,7 +208,7 @@ class StockBatch extends Core{
                         'stock_batch_content_id'=>$record->content_id,
                         'quantity'=>-$left_quantity,
                         'product_id'=>$record->product_id,
-                        'price'=>-$record->price,
+                        'price'=>$record->price,
                         'spec_num'=>$record->spec_num,
                         'amount'=>number_format(-$left_quantity*$record->price,0,'.','')
                     ];
@@ -230,39 +228,20 @@ class StockBatch extends Core{
                 else
                 {
                     // 新增负批次
-                    $arr = [
-                        'product_id' => $item['product_id'],
-                        'quantity' => -$left_quantity,
-                    ];
-                    if (isset($item['price']) && is_numeric($item['price']))
-                    {
-                        $arr['price'] = $item['price'];
-                    }else{
-                        return false;
-                    }
-
-                    if (isset($item['spec_num']))
-                    {
-                        $arr['spec_num'] = $item['spec_num'];
-                    }else{
-                        return false;
-                    }
-
-                    if (isset($item['spec_unit']))
-                    {
-                        $arr['spec_unit'] = $item['spec_unit'];
-                    }else{
-                        return false;
-                    }
+                    $arr = ['product_id' => $item['product_id'], 'quantity' => -$left_quantity,'package'=>$item['package']];
+                    $product_info=$stock_model->get_product_info_by_product_id($hq_code,$orgz_id,$item['product_id']);
+                    if($product_info==null) return false;
+                    $arr['spec_num']=$product_info->spec_num;
+                    $arr['spec_unit']=$product_info->spec_unit;
+                    $arr['price']=$product_info->price;
 
                     $info = array($arr);
 
-                    $res = $this->add_stock_batch($hq_code, $orgz_id, $info, $related_id, $stock_change_genre,$operate);
+                    $res = $this->add_stock_batch($hq_code, $orgz_id,$related_id,$stock_change_genre ,$info,$operation);
                     if (!isset($res['details']))
                     {
                         return false;
                     }
-                    $details = $res['details'];
                     $batch = reset($res['details']);
                     $batch['quantity'] = -$left_quantity;
                     $batch['product_id'] = $item['product_id'];
@@ -271,17 +250,20 @@ class StockBatch extends Core{
                     $deducted_price += ($left_quantity*$batch['price']);
                 }
             }
+
+            //更新库存
             $item['amount']=number_format(-$deducted_price,0,'.','');
-            $item['price']=-$item['price'];
             $item['quantity']=-$item['quantity'];
-            $stock_model->update_product_stock($hq_code,$orgz_id,$related_id,$stock_change_genre,[$item],$operate);
-            $deducted_amount_price+=$item['amount'];
+            $update=$stock_model->update_product_stock($hq_code,$orgz_id,$related_id,$stock_change_genre,[$item],$operation);
+            if($update){
+                $deducted_amount_price+=$item['amount'];
+            }else{
+                return false;
+            }
         }
 
-        if($stock_change_genre==4 || $stock_change_genre==8){
-            return $deducted_amount_price;
-        }
-        return $changed_detail;
+        $result=['amount'=>$deducted_amount_price,'detail'=>$changed_detail];
+        return $result;
     }
 
     /**
@@ -295,7 +277,7 @@ class StockBatch extends Core{
      * 商品信息 [ ['product_id'=>1,'quantity'=>5,'package'=>2,'spec_num'=>2.5,'spec_unit'=>'斤','supplier_id'=>null] ]
      * @param integer $operation 1:入库单,2:出库单,3:销售
      * @param bool $update_stock_price 是否更新库存价格
-     * @return array ['stock_batch_id'=>55,'detail'=>$detail]
+     * @return array|false ['stock_batch_id'=>55,'detail'=>$detail]
      */
     public function add_stock_batch($hq_code,$orgz_id,$related_id,$genre,$product_info,$operation,$update_stock_price=false){
         $stock = new Stock();
@@ -308,10 +290,11 @@ class StockBatch extends Core{
         $base = ['hq_code' => $hq_code, 'orgz_id' => $orgz_id, 'related_id' => $related_id, 'genre' => $genre,
             'code' => $this->order_create_code($hq_code,$this->_stock_batch,'PC',4), 'created_at' => $now_time];
         $id = $this->insertGetId($base);
-
         $result['stock_batch_id'] = $id;
+        $amount=0;
         foreach ($product_info as $item)
         {
+            $detail=null;
             // 构建批次明细数据
             $detail['stock_batch_id']=$id;
             $detail['product_id']=isset($item['product_id']) && is_numeric($item['product_id'])?$item['product_id']:null;
@@ -322,9 +305,10 @@ class StockBatch extends Core{
             $detail['spec_unit']=isset($item['spec_unit']) && trim($item['spec_unit'])!=null?$item['spec_unit']:null;
             $detail['supplier_id']=isset($item['supplier_id']) && is_numeric($item['supplier_id'])?$item['supplier_id']:null;
 
-            if(!$detail['product_id'] || !$detail['quantity'] || !$detail['package'] || !$detail['price']) return false;
+            if(!$detail['product_id'] || !$detail['quantity'] || !$detail['package'] || !is_numeric($detail['price'])) return false;
 
             $detail['total_amount'] = number_format($detail['price'] * $detail['quantity'],0,'.','');
+            $amount+=$detail['total_amount'];
             $detail['inventory'] = $item['quantity'];
             $detail['instock_num'] = $item['quantity'];
             $detail['created_at'] = $now_time;
@@ -371,8 +355,12 @@ class StockBatch extends Core{
         }
 
         $result['details'] = $details;
-
-        $stock->update_product_stock($hq_code,$orgz_id,$related_id,$genre,$product_info,$operation);
-        return $result;
+        $result['amount'] = $amount;
+        $update=$stock->update_product_stock($hq_code,$orgz_id,$related_id,$genre,$product_info,$operation);
+        if($update){
+            return $result;
+        }else{
+            return false;
+        }
     }
 }

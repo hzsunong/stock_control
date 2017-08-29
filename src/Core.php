@@ -10,7 +10,7 @@ use App\Models\StockChangeRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
-class core extends Model{
+class Core extends Model{
 
     protected $_instock='instock';
 
