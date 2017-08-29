@@ -96,7 +96,6 @@ class InstockFunc extends CommonFunc{
             }
             $instock_model->where('id',$instock_id)->update(['total_amount'=>$amount]);
             DB::commit();
-            $this->log_record('info',$creator_id,'入库单新增成功 id:'.$instock_id,$params);
             $result=['code'=>'0','msg'=>'入库单新增成功','bill_id'=>$instock_id];
             if($is_confirm){
                 $instock_response=$this->confirm_instock($hq_code,$instock_id,$auditor_id,$update_stock_price);
@@ -105,6 +104,7 @@ class InstockFunc extends CommonFunc{
                 $result['amount']=$amount;
                 $result['detail']=$instock_response['detail'];
             }
+            $this->log_record('info',$creator_id,'入库单新增成功 id:'.$instock_id.' 耗时:'.($this->get_micro_time()-$start_time),$params);
             return $result;
         }catch (\Exception $exception){
             DB::rollBack();

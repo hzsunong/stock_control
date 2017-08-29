@@ -98,7 +98,7 @@ class CreateOperationTable extends Migration
             $table->integer('product_id')->unsigned()->comment('商品ID');
             $table->float('spec_num', 16, 3)->comment('规格');
             $table->string('spec_unit', 32)->comment('最小销售规格单位');
-            $table->integer('delivery_price')->comment('出库价格: 单位分');
+            $table->integer('delivery_price')->nullable()->comment('出库价格: 单位分');
             $table->integer('price')->comment('出库价格: 分');
             $table->integer('amount')->comment('出库金额');
             $table->float('package', 16, 3)->comment('出库件数');
