@@ -87,6 +87,7 @@ class StockFunc extends CommonFunc{
                 if(is_numeric($stock_id)) $insert_product_list[]=$product_id;
             }
             $this->log_record('info','null','库存信息初始化成功 耗时:'.($this->get_micro_time()-$start_time),$params);
+            DB::commit();
             return ['code'=>'0','msg'=>'库存信息初始化成功','data'=>$insert_product_list];
         }catch (\Exception $exception){
             $result=['code'=>'10000','msg'=>'库存信息初始化失败','data'=>$exception->getMessage()];
@@ -167,7 +168,7 @@ class StockFunc extends CommonFunc{
         $product_map=$product_info->keyBy('product_id')->toArray();
         foreach ($products as $product){
             $product_diff=['product_id'=>$product['product_id'],'after_quantity'=>$product['quantity'],
-                'before_quantity'=>$product_map[$product['product_id']]['quantity'],'price'=>$product['price']];
+                'before_quantity'=>$product_map[$product['product_id']]['quantity']];
             $product_diff['change_quantity']=$product_diff['after_quantity']-$product_diff['before_quantity'];
 
             if($product_diff['change_quantity']>0){
@@ -180,16 +181,66 @@ class StockFunc extends CommonFunc{
         //构建入库单或出库单
         $instock_id=null;
         $outstock_id=null;
-        if(!empty($instock_list)){
-            $instock_id=$instock_func->new_instock($hq_code,$orgz_id,$operator,18,$inventory_id,$instock_list,null,'盘点生成入库单',$operator);
-            $result=$instock_func->confirm_instock($hq_code,$orgz_id,$instock_id,$operator,false);
-            $amount=$result['amount'];
-            $detail=$result['detail'];
-        }
-        if(!empty($outstock_list)){
-            $outstock_id=$outstock_func->new_outstock($hq_code,$orgz_id,$operator,19,$inventory_id,$outstock_list,
-                $operator,null,null,'盘点生成出库单');
-            $result=$outstock_func->confirm_outstock($hq_code,$orgz_id,$outstock_id,$operator,false);
+        $instock_amount=null;
+        $instock_detail=null;
+        $outstock_amount=null;
+        $outstock_detail=null;
+        $content=[];
+
+        DB::beginTransaction();
+        try{
+            if(!empty($instock_list)){
+                $instock_collect=collect($instock_list)->keyBy('product_id')->toArray();
+                $instock_response=$instock_func->new_instock($hq_code,$orgz_id,$operator,18,$inventory_id,$instock_list,null,
+                    '盘点生成入库单',$operator);
+                if($instock_response['code']!='0'){
+                    die('盘点生成入库单失败');
+                }
+                $instock_id=$instock_response['bill_id'];
+                $instock_amount=$instock_response['amount'];
+                $instock_detail=$instock_response['detail'];
+                foreach ($instock_detail as $item){
+                    $product_id=$item['product_id'];
+                    $content[]=['product_id'=>$product_id,'before_quantity'=>$instock_collect[$product_id]['before_quantity'],
+                        'change_quantity'=>$instock_collect[$product_id]['change_quantity'],
+                        'after_quantity'=>$instock_collect[$product_id]['after_quantity'],
+                        'amount'=>$item['amount'],'batch_info'=>[$item]];
+                }
+
+            }
+            $temp_content=[];
+            if(!empty($outstock_list)){
+                $outstock_collect=collect($outstock_list)->keyBy('product_id')->toArray();
+                $outstock_response=$outstock_func->new_outstock($hq_code,$orgz_id,$operator,19,$inventory_id,$outstock_list,
+                    $operator,null,null,'盘点生成出库单');
+
+                if($outstock_response['code']!='0'){
+                    die('盘点生成出库单失败');
+                }
+                $outstock_id=$outstock_response['bill_id'];
+                $outstock_amount=$outstock_response['amount'];
+                $outstock_detail=$outstock_response['detail'];
+                foreach ($outstock_detail as $item){
+                    $product_id=$item['product_id'];
+                    if(isset($temp_content[$product_id])){
+                        $temp_content[$product_id]['batch_info'][]=$item;
+                    }else{
+                        $temp_content[]=['product_id'=>$product_id,'before_quantity'=>$outstock_collect[$product_id]['before_quantity'],
+                            'change_quantity'=>$outstock_collect[$product_id]['change_quantity'],
+                            'after_quantity'=>$outstock_collect[$product_id]['after_quantity'],
+                            'amount'=>$outstock_amount,'batch_info'=>[$item]];
+                    }
+                }
+            }
+            $content=array_merge($content,$temp_content);
+
+            $this->log_record('info','null','盘点库存成功 耗时:'.($this->get_micro_time()-$start_time),$params);
+            DB::commit();
+            return ['code'=>'0','msg'=>'盘点库存成功','instock_id'=>$instock_id,'outstock_id'=>$outstock_id,'data'=>$content];
+        }catch (\Exception $e){
+            DB::rollBack();
+            $this->log_record('info','null','盘点库存失败 原因:'.json_encode($e->getMessage()),$params);
+            return ['code'=>'10000','msg'=>'盘点库存失败','data'=>$e->getMessage()];
         }
     }
 }

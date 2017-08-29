@@ -293,6 +293,7 @@ class StockBatch extends Core{
         $id = $this->insertGetId($base);
 
         $result['stock_batch_id'] = $id;
+        $amount=0;
         foreach ($product_info as $item)
         {
             // 构建批次明细数据
@@ -308,6 +309,7 @@ class StockBatch extends Core{
             if(!$detail['product_id'] || !$detail['quantity'] || !$detail['package'] || !$detail['price']) return false;
 
             $detail['total_amount'] = number_format($detail['price'] * $detail['quantity'],0,'.','');
+            $amount+=$detail['total_amount'];
             $detail['inventory'] = $item['quantity'];
             $detail['instock_num'] = $item['quantity'];
             $detail['created_at'] = $now_time;
@@ -354,6 +356,7 @@ class StockBatch extends Core{
         }
 
         $result['details'] = $details;
+        $result['amount'] = $amount;
 
         $update=$stock->update_product_stock($hq_code,$orgz_id,$related_id,$genre,$product_info,$operation);
         if($update){

@@ -101,8 +101,15 @@ class OutstockFunc extends CommonFunc{
             //立即审核
             $this->log_record('info',$creator_id,'出库单新增成功'.' 耗时:'.($this->get_micro_time()-$start_time).' id:'.$outstock_id,$params);
 
-            if($is_confirm) $this->confirm_outstock($hq_code,$orgz_id,$outstock_id,$auditor_id);
-            return ['code'=>'0','msg'=>'出库单新增成功',$outstock_id];
+            if($is_confirm){
+                $response=$this->confirm_outstock($hq_code,$orgz_id,$outstock_id,$auditor_id);
+            }
+            $result=['code'=>'0','msg'=>'出库单新增成功','bill_id'=>$outstock_id];
+            if(isset($response) && $response['code']=='0'){
+                $result['amount']=$response['amount'];
+                $result['detail']=$response['data'];
+            }
+            return $result;
         }catch (\Exception $exception){
             DB::rollBack();
             $this->log_record('error',$creator_id,'出库单新增失败,原因:'.$exception->getMessage(),$params);

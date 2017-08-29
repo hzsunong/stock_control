@@ -14,7 +14,8 @@ class CreateOperationTable extends Migration
     {
         /**
          * 入库单
-         * @author Robin <huangfeilong@freshfirst.cn>
+         * @author Javen <w@juyii.com>
+         * @date 2017-08-29
          */
         Schema::create('instock', function(Blueprint $table) {
             $table->increments('id');
@@ -38,8 +39,9 @@ class CreateOperationTable extends Migration
         });
 
         /**
-         * 入库单明细表(差异明细表)
-         * @author Robin <huangfeilong@freshfirst.cn>
+         * 入库单明细表
+         * @author Javen <w@juyii.com>
+         * @date 2017-08-29
          */
         Schema::create('instock_content', function(Blueprint $table) {
             $table->increments('id')->comment('明细ID');
@@ -48,7 +50,7 @@ class CreateOperationTable extends Migration
             $table->string('spec_unit', 32)->comment('销售单位');
             $table->float('spec_num', 16, 3)->comment('要货规格');
             $table->integer('price')->comment('单个进价: 分');
-            $table->integer('amount')>comment('实入金额:分');
+            $table->integer('amount')->comment('实入金额:分');
             $table->float('quantity', 16, 3)->unsigned()->comment('实入数量');
             $table->float('package', 16, 3)->unsigned()->comment('实入件数');
             $table->char('remark')->nullable()->comment('备注');
@@ -57,7 +59,11 @@ class CreateOperationTable extends Migration
             $table->comment = '入库单明细表';
         });
 
-        // 出库单 (采购单合并到出库单)
+        /**
+         * 出库单
+         * @author Javen <w@juyii.com>
+         * @date 2017-08-29
+         */
         Schema::create('outstock', function (Blueprint $table) {
             $table->increments('id')->comment('ID');
             $table->char('code', 32)->comment('编号');
@@ -81,14 +87,18 @@ class CreateOperationTable extends Migration
             $table->comment = '出库单表';
         });
 
-        // 出库单明细表（采购单明细合并到出库单明细表）
+        /**
+         * 出库单明细表
+         * @author Javen <w@juyii.com>
+         * @date 2017-08-29
+         */
         Schema::create('outstock_content', function (Blueprint $table) {
             $table->increments('id')->comment('明细ID');
             $table->integer('outstock_id')->unsigned()->comment('出库单ID');
             $table->integer('product_id')->unsigned()->comment('商品ID');
             $table->float('spec_num', 16, 3)->comment('规格');
             $table->string('spec_unit', 32)->comment('最小销售规格单位');
-            $table->integer('delivery_price')>comment('出库价格: 单位分');
+            $table->integer('delivery_price')->comment('出库价格: 单位分');
             $table->integer('price')->comment('出库价格: 分');
             $table->integer('amount')->comment('出库金额');
             $table->float('package', 16, 3)->comment('出库件数');
@@ -100,7 +110,11 @@ class CreateOperationTable extends Migration
             $table->comment = '出库单明细表';
         });
 
-        // 库存表
+        /**
+         * 库存表
+         * @author Javen <w@juyii.com>
+         * @date 2017-08-29
+         */
         Schema::create('stock', function (Blueprint $table) {
             $table->increments('id');
             $table->char('hq_code', 16)->comment('公司编码');
@@ -121,7 +135,11 @@ class CreateOperationTable extends Migration
             $table->comment = '库存表';
         });
 
-        // 库存批次表
+        /**
+         * 库存批次表
+         * @author Javen <w@juyii.com>
+         * @date 2017-08-29
+         */
         Schema::create('stock_batch', function (Blueprint $table) {
             $table->increments('id')->comment('ID');
             $table->char('code', 32)->comment('批次编号');
@@ -136,7 +154,11 @@ class CreateOperationTable extends Migration
             $table->comment = '库存批次表';
         });
 
-        // 库存批次明细表
+        /**
+         * 库存批次明细表
+         * @author Javen <w@juyii.com>
+         * @date 2017-08-29
+         */
         Schema::create('stock_batch_content', function (Blueprint $table) {
             $table->increments('id')->comment('ID');
             $table->integer('stock_batch_id')->unsigned()->comment('库存批次表id');
@@ -159,8 +181,8 @@ class CreateOperationTable extends Migration
 
         /**
          * 批次流水表
-         * @author Robin <huangfeilong@freshfirst.cn>
-         * @date 2017-04-11
+         * @author Javen <w@juyii.com>
+         * @date 2017-08-29
          */
         Schema::create('stock_batch_flow', function(Blueprint $table){
             $table->increments('id')->comment('ID');
@@ -186,7 +208,7 @@ class CreateOperationTable extends Migration
         /**
          * 库存变动记录
          * @author Javen <w@juyii.com>
-         * @date 2017-06-18
+         * @date 2017-08-29
          */
         Schema::create('stock_change_record', function(Blueprint $table){
             $table->increments('id')->comment('ID');

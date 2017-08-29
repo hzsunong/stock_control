@@ -97,8 +97,15 @@ class InstockFunc extends CommonFunc{
             $instock_model->where('id',$instock_id)->update(['total_amount'=>$amount]);
             DB::commit();
             $this->log_record('info',$creator_id,'入库单新增成功 id:'.$instock_id,$params);
-            if($is_confirm) $this->confirm_instock($hq_code,$instock_id,$auditor_id,$update_stock_price);
-            return ['code'=>'0','msg'=>'入库单新增成功 耗时:'.($this->get_micro_time()-$start_time),$instock_id];
+            $result=['code'=>'0','msg'=>'入库单新增成功','bill_id'=>$instock_id];
+            if($is_confirm){
+                $instock_response=$this->confirm_instock($hq_code,$instock_id,$auditor_id,$update_stock_price);
+            }
+            if(isset($instock_response) && $instock_response['code']=='0'){
+                $result['amount']=$amount;
+                $result['detail']=$instock_response['detail'];
+            }
+            return $result;
         }catch (\Exception $exception){
             DB::rollBack();
             $this->log_record('error',$creator_id,'入库单新增失败,原因:'.$exception->getMessage(),$params);
@@ -148,7 +155,7 @@ class InstockFunc extends CommonFunc{
             if($result){
                 DB::commit();
                 $this->log_record('info',$auditor_id,'入库单审核成功 耗时:'.($this->get_micro_time()-$start_time).' 更新明细:'.json_encode($result),$params);
-                return ['code'=>'0','msg'=>'入库单审核成功','bill_id'=>$instock_id,'detail'=>$result['details']];
+                return ['code'=>'0','msg'=>'入库单审核成功','bill_id'=>$instock_id,'detail'=>$result['details'],'amount'=>$result['amount']];
             }else{
                 DB::rollBack();
                 $this->log_record('info',$auditor_id,'入库单审核失败 耗时:'.($this->get_micro_time()-$start_time).' 库存变动失败或库存信息不存在',$params);
