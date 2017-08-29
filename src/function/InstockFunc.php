@@ -207,7 +207,7 @@ class InstockFunc extends CommonFunc{
         $instock_model=new Instock();
         $instock_list=$instock_model->get_instock_list($hq_code,$orgz_id,$limit,$offset,$genre,$confirmed);
         if($instock_list==null){
-            $result=['code'=>'0','msg'=>'入库单列表获取成功:但没有符合筛选条件的数据'];
+            $result=['code'=>'0','msg'=>'入库单列表获取成功:但没有符合筛选条件的数据','total'=>0,'data'=>[]];
             $this->log_record('info','null','入库单列表获取成功:但没有符合筛选条件的数据 耗时:'.($this->get_micro_time()-$start_time),$params);
             return $result;
         }

@@ -238,7 +238,7 @@ class OutstockFunc extends CommonFunc{
         $outstock_model=new Outstock();
         $outstock_list=$outstock_model->get_outstock_list($hq_code,$orgz_id,$limit,$offset,$genre,$confirmed);
         if($outstock_list==null){
-            $result=['code'=>'0','msg'=>'出库单列表获取成功:但没有符合筛选条件的数据'];
+            $result=['code'=>'0','msg'=>'出库单列表获取成功:但没有符合筛选条件的数据','total'=>0,'data'=>[]];
             $this->log_record('info','null','出库单列表获取成功:但没有符合筛选条件的数据 耗时:'.($this->get_micro_time()-$start_time),$params);
             return $result;
         }
