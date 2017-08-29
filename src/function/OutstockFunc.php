@@ -102,12 +102,12 @@ class OutstockFunc extends CommonFunc{
             $this->log_record('info',$creator_id,'出库单新增成功'.' 耗时:'.($this->get_micro_time()-$start_time).' id:'.$outstock_id,$params);
 
             if($is_confirm){
-                $response=$this->confirm_outstock($hq_code,$orgz_id,$outstock_id,$auditor_id);
+                $confirm_result=$this->confirm_outstock($hq_code,$orgz_id,$outstock_id,$auditor_id);
             }
             $result=['code'=>'0','msg'=>'出库单新增成功','bill_id'=>$outstock_id];
-            if(isset($response) && $response['code']=='0'){
-                $result['amount']=$response['amount'];
-                $result['detail']=$response['data'];
+            if(isset($confirm_result) && $confirm_result['code']=='0'){
+                $result['amount']=$confirm_result['amount'];
+                $result['detail']=$confirm_result['data'];
             }
             return $result;
         }catch (\Exception $exception){
