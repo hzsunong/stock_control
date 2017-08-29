@@ -294,6 +294,7 @@ class StockBatch extends Core{
         $amount=0;
         foreach ($product_info as $item)
         {
+            $detail=null;
             // 构建批次明细数据
             $detail['stock_batch_id']=$id;
             $detail['product_id']=isset($item['product_id']) && is_numeric($item['product_id'])?$item['product_id']:null;
