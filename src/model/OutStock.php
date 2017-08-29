@@ -73,7 +73,7 @@ class Outstock extends Core{
         if($confirmed!=null) $data->where('confirmed',$confirmed);
         $result['total']=$data->count();
         if($result['total']==0) return null;
-        $result['data']=$data->limit($limit)->offset($offset)->get();
+        $result['data']=$data->limit($limit)->offset($offset)->get()->toArray();
         return $result;
     }
 
