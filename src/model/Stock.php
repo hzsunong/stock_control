@@ -152,7 +152,7 @@ class Stock extends Core{
      * @return mixed 通过商品id列表获取库存数量与价格信息
      */
     public function get_inventory_by_products($hq_code,$orgz_id,$product_ids){
-        $data=$this->select('product_id','quantity','price')->where('hq_code',$hq_code)->where('orgz_id',$orgz_id)
+        $data=$this->select('product_id','quantity','price','spec_unit')->where('hq_code',$hq_code)->where('orgz_id',$orgz_id)
             ->whereIn('product_id',$product_ids)->get();
         return $data;
     }

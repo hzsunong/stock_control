@@ -139,9 +139,9 @@ class StockFunc extends CommonFunc{
      * @author Javen <w@juyii.com>
      * @param string $hq_code
      * @param integer $orgz_id
-     * @param integer $inventory_id
-     * @param $operator
-     * @param $products
+     * @param integer $inventory_id 相关盘点id
+     * @param integer $operator 操作员id
+     * @param array $products 商品列表
      * @return array
      */
     public function stock_inventory($hq_code,$orgz_id,$inventory_id,$operator,$products){
@@ -177,7 +177,8 @@ class StockFunc extends CommonFunc{
         $product_map=$product_info->keyBy('product_id')->toArray();
         foreach ($products as $product){
             $product_diff=['product_id'=>$product['product_id'],'after_quantity'=>$product['quantity'],
-                'before_quantity'=>$product_map[$product['product_id']]['quantity']];
+                'before_quantity'=>$product_map[$product['product_id']]['quantity'],
+                'package'=>$product['package']];
             $product_diff['change_quantity']=$product_diff['after_quantity']-$product_diff['before_quantity'];
 
             if($product_diff['change_quantity']>0){
@@ -198,12 +199,24 @@ class StockFunc extends CommonFunc{
 
         DB::beginTransaction();
         try{
+            //处理入库单
             if(!empty($instock_list)){
+
+                //构建入库单相关商品数据
                 $instock_collect=collect($instock_list)->keyBy('product_id')->toArray();
-                $instock_response=$instock_func->new_instock($hq_code,$orgz_id,$operator,18,$inventory_id,$instock_list,null,
+                $product_info=[];
+                foreach ($instock_collect as $product_id=>$info){
+                    $product_info[]=['product_id'=>$product_id,'quantity'=>$info['change_quantity'],'package'=>$info['package'],
+                        'price'=>$product_map[$product_id]['price'],'spec_unit'=>$product_map[$product_id]['spec_unit']];
+                }
+
+                $instock_response=$instock_func->new_instock($hq_code,$orgz_id,$operator,18,$inventory_id,$product_info,null,
                     '盘点生成入库单',$operator);
                 if($instock_response['code']!='0'){
-                    die('盘点生成入库单失败');
+                    DB::rollBack();
+                    $result=['code'=>'10000','msg'=>'盘点生成入库单失败','data'=>$instock_response];
+                    $this->log_record('error','null','盘点生成入库单失败 原因:'.json_encode($instock_response),$params);
+                    return $result;
                 }
                 $instock_id=$instock_response['bill_id'];
                 $instock_amount=$instock_response['amount'];
@@ -213,18 +226,26 @@ class StockFunc extends CommonFunc{
                     $content[]=['product_id'=>$product_id,'before_quantity'=>$instock_collect[$product_id]['before_quantity'],
                         'change_quantity'=>$instock_collect[$product_id]['change_quantity'],
                         'after_quantity'=>$instock_collect[$product_id]['after_quantity'],
-                        'amount'=>$item['amount'],'batch_info'=>[$item]];
+                        'amount'=>$item['total_amount'],'batch_info'=>[$item]];
                 }
-
             }
             $temp_content=[];
             if(!empty($outstock_list)){
                 $outstock_collect=collect($outstock_list)->keyBy('product_id')->toArray();
-                $outstock_response=$outstock_func->new_outstock($hq_code,$orgz_id,$operator,19,$inventory_id,$outstock_list,
+                $product_info=[];
+                foreach ($outstock_collect as $product_id=>$info){
+                    $product_info[]=['product_id'=>$product_id,'quantity'=>-$info['change_quantity'],'package'=>$info['package'],
+                        'price'=>$product_map[$product_id]['price'],'spec_unit'=>$product_map[$product_id]['spec_unit']];
+                }
+
+                $outstock_response=$outstock_func->new_outstock($hq_code,$orgz_id,$operator,19,$inventory_id,$product_info,
                     $operator,null,null,'盘点生成出库单');
 
                 if($outstock_response['code']!='0'){
-                    die('盘点生成出库单失败');
+                    DB::rollBack();
+                    $result=['code'=>'10000','msg'=>'盘点生成出库单失败','data'=>$outstock_response];
+                    $this->log_record('error','null','盘点生成出库单失败 原因:'.json_encode($outstock_response),$params);
+                    return $result;
                 }
                 $outstock_id=$outstock_response['bill_id'];
                 $outstock_amount=$outstock_response['amount'];
