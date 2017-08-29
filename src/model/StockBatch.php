@@ -79,7 +79,6 @@ class StockBatch extends Core{
         $join_table = 'stock_batch_content';
         foreach ($product_info as $item)
         {
-
             $deducted_price=0;
             $left_quantity = $item['quantity'];
             $this->select('stock_batch.id as stock_batch_id', 'stock_batch.hq_code as hq_code',
@@ -171,7 +170,6 @@ class StockBatch extends Core{
                         return false;
                     }
                 });
-
             //如果剩余库存不足以扣减数量,新增负批次
             if ($left_quantity > 0) {
                 // 查找最近的负批次
@@ -230,7 +228,7 @@ class StockBatch extends Core{
                 else
                 {
                     // 新增负批次
-                    $arr = ['product_id' => $item['product_id'], 'quantity' => -$left_quantity];
+                    $arr = ['product_id' => $item['product_id'], 'quantity' => -$left_quantity,'package'=>$item['package']];
                     $product_info=$stock_model->get_product_info_by_product_id($hq_code,$orgz_id,$item['product_id']);
                     if($product_info==null) return false;
                     $arr['spec_num']=$product_info->spec_num;
@@ -239,7 +237,7 @@ class StockBatch extends Core{
 
                     $info = array($arr);
 
-                    $res = $this->add_stock_batch($hq_code, $orgz_id, $info, $related_id, $stock_change_genre,$operation);
+                    $res = $this->add_stock_batch($hq_code, $orgz_id,$related_id,$stock_change_genre ,$info,$operation);
                     if (!isset($res['details']))
                     {
                         return false;
@@ -252,6 +250,7 @@ class StockBatch extends Core{
                     $deducted_price += ($left_quantity*$batch['price']);
                 }
             }
+
             //更新库存
             $item['amount']=number_format(-$deducted_price,0,'.','');
             $item['quantity']=-$item['quantity'];
@@ -291,7 +290,6 @@ class StockBatch extends Core{
         $base = ['hq_code' => $hq_code, 'orgz_id' => $orgz_id, 'related_id' => $related_id, 'genre' => $genre,
             'code' => $this->order_create_code($hq_code,$this->_stock_batch,'PC',4), 'created_at' => $now_time];
         $id = $this->insertGetId($base);
-
         $result['stock_batch_id'] = $id;
         $amount=0;
         foreach ($product_info as $item)
@@ -357,7 +355,6 @@ class StockBatch extends Core{
 
         $result['details'] = $details;
         $result['amount'] = $amount;
-
         $update=$stock->update_product_stock($hq_code,$orgz_id,$related_id,$genre,$product_info,$operation);
         if($update){
             return $result;
