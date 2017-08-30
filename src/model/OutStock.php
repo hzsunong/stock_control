@@ -61,6 +61,7 @@ class Outstock extends Core{
      * @date 2017-08-23
      * @param string $hq_code
      * @param integer $orgz_id
+     * @param array $date_range 时间范围
      * @param integer $limit
      * @param integer $offset
      * @param null|integer $genre 类型
@@ -68,8 +69,10 @@ class Outstock extends Core{
      * @param null|array $or_where orWhere条件
      * @return null|array 获取出库单列表
      */
-    public function get_outstock_list($hq_code,$orgz_id,$limit=20,$offset=0,$genre=null,$confirmed=null,$or_where=null){
-        $data=$this->where('hq_code',$hq_code)->where('orgz_id',$orgz_id);
+    public function get_outstock_list($hq_code,$orgz_id,$date_range,$limit=20,$offset=0,$genre=null,$confirmed=null,$or_where=null){
+        $start_time=reset($date_range);
+        $end_time=next($date_range);
+        $data=$this->where('hq_code',$hq_code)->where('orgz_id',$orgz_id)->whereBetween('delivery_date',[$start_time,$end_time]);
         if($genre!=null) $data->where('genre',$genre);
         if($confirmed!=null) $data->where('confirmed',$confirmed);
         if(is_array($or_where) && !empty($or_where)){
