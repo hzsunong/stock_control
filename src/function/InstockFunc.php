@@ -81,7 +81,7 @@ class InstockFunc extends CommonFunc{
                 $ic_data['quantity']=isset($product['quantity']) && is_numeric($product['quantity'])?$product['quantity']:null;
                 $ic_data['package']=isset($product['package']) && is_numeric($product['package'])?$product['package']:null;
                 $ic_data['remark']=isset($product['remark']) && trim($product['remark'])!=''?$product['remark']:null;
-
+                $ic_data['created_at']=$now_time;
                 if(!$ic_data['product_id'] || !$ic_data['spec_unit'] || !is_numeric($ic_data['price']) || !$ic_data['quantity'] || !$ic_data['package']){
                     DB::rollBack();
                     $this->log_record('error',$creator_id,'商品详情参数缺失',$params);
