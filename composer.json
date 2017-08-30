@@ -17,7 +17,8 @@
         "psr-4": {
             "SuNong\\StockControl\\": "src/",
             "SuNong\\StockControl\\Model\\": "src/model/",
-            "SuNong\\StockControl\\Func\\": "src/function/"
+            "SuNong\\StockControl\\Func\\": "src/function/",
+            "SuNong\\StockControl\\Test\\": "src/test/"
         }
     }
 }

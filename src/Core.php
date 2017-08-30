@@ -96,7 +96,7 @@ class Core extends Model{
             default:
                 return null;
         }
-        return [(string)$filed,(string)$operate,(string)$value];
+        return [(string)$filed,(string)$operate,$value];
     }
 
 }
