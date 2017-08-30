@@ -117,4 +117,21 @@ class Instock extends Core{
         return $data;
     }
 
+    /**
+     * @author Javen <w@juyii.com>
+     * @date 2017-08-23
+     * @param string $hq_code
+     * @param integer $orgz_id 组织id
+     * @param array $product_ids 商品id列表
+     * @return null|array 通过商品id列表获取入库单id列表
+     */
+    public function get_instock_id_by_product_ids($hq_code,$orgz_id,$product_ids){
+        $data=$this->select('instock_content.instock_id')
+            ->join('instock_content','instock_cotnent.instock_id','=','instock.id')
+            ->where('instock.hq_code',$hq_code)->where('instock.orgz_id',$orgz_id)->where('instock.status',1)
+            ->whereIn('instock_content.product_id',$product_ids)->where('instock_content.status',1)->get();
+        if($data==null) return null;
+        return $data->pluck('instock_id')->toArray();
+    }
+
 }

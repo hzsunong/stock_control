@@ -266,4 +266,29 @@ class InstockFunc extends CommonFunc{
         $this->log_record('info','null','入库单详情获取成功 耗时:'.($this->get_micro_time()-$start_time),$params);
         return $result;
     }
+
+    public function get_instock_id_by_product_ids($hq_code,$orgz_id,$product_ids){
+        $start_time=$this->get_micro_time();
+        $params=func_get_args();
+        $this->log_record('info','null','入库单列表获取开始',$params);
+        $hq_code=trim($hq_code)!=''?$hq_code:null;
+        $orgz_id=is_numeric($orgz_id)?$orgz_id:null;
+        $product_ids=is_array($product_ids) && !empty($product_ids)?$product_ids:null;
+
+        if(!$hq_code || !$orgz_id || !$product_ids){
+            $result=['code'=>'10000','msg'=>'参数缺失'];
+            $this->log_record('error','null','入库单详情获取失败:参数缺失',$params);
+            return $result;
+        }
+
+        $instock_model=new Instock();
+        $ic_model=new InstockContent();
+        $instock_data=$instock_model->get_instock_by_id($hq_code,$orgz_id,$instock_id);
+        $instock_content=$ic_model->get_detail_by_instock_id($instock_id);
+        if($instock_data==null || $instock_content==null){
+            $result=['code'=>'10000','msg'=>'入库单详情获取失败:状态已变更,或单据不存在'];
+            $this->log_record('error','null','入库单详情获取失败:状态已变更,或单据不存在',$params);
+            return $result;
+        }
+    }
 }
