@@ -10,7 +10,7 @@ use App\Models\StockChangeRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
-class core extends Model{
+class Core extends Model{
 
     protected $_instock='instock';
 
@@ -69,6 +69,34 @@ class core extends Model{
         }
 
         return $prefix.$now_date.$code_num;
+    }
+
+    /**
+     * @author Javen <w@juyii.com>
+     * @date 2017-08-30
+     * @param array $orWhere 查询条件
+     * @return array|null 返回查询数据
+     */
+    protected function resolver_orWhere($orWhere){
+        if(!is_array($orWhere)  && empty($orWhere)) return null;
+        $filed=null;
+        $operate='=';
+        $value=null;
+        $count=count($orWhere);
+        switch ($count){
+            case 2:
+                $filed=reset($orWhere);
+                $value=next($orWhere);
+                break;
+            case 3:
+                $filed=reset($orWhere);
+                $operate=next($orWhere);
+                $value=next($orWhere);
+                break;
+            default:
+                return null;
+        }
+        return [(string)$filed,(string)$operate,(string)$value];
     }
 
 }

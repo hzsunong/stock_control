@@ -6,6 +6,8 @@
  */
 namespace SuNong\StockControl\Func;
 
+use Illuminate\Support\Facades\Log;
+
 class CommonFunc{
     /**
      * 20170213
