@@ -24,13 +24,14 @@ class CreateOperationTable extends Migration
             $table->integer('orgz_id')->unsigned()->comment('所属组织ID');
             $table->integer('total_amount')->comment('单据金额:分');
             $table->tinyInteger('genre')->default(0)->unsigned()
-                ->comment('入库类型 0:入库单 1:调拨 2:盘点 3:配送差异驳回 4:加工成品 5:销售退货 6:采购入库 7:门店退仓(dc确认退仓) 8:配送差异 9:红冲 10:要货  11:门店退仓驳回 12:配送中心直配 13:配送中心销售退货');
+                ->comment('入库类型 2:销售退货 4:调拨入库 6:门店退仓驳回 8:门店要货入库 10:加工成品 12:配送差异确认 14:配送差异驳回 16:采购 18:盘点入库 20:红冲入库 22:配送中心直配入库 24:配送中心销售入库');
             $table->integer('creator_id')->unsigned()->comment('制单人ID');
             $table->tinyInteger('confirmed')->default(0)->comment('是否审核：0.未审核，1.已审核, 2.红冲');
             $table->integer('related_id')->nullable()->comment('关联单据id');
             $table->integer('supplier_id')->nullable()->comment('供应商ID');
             $table->integer('auditor_id')->nullable()->comment('审核人ID');
             $table->datetime('confirmed_date')->nullable()->comment('审核日期');
+            $table->datetime('instock_date')->nullable()->comment('入库日期');
             $table->text('remark')->nullable()->comment('备注');
             $table->tinyInteger('print_num')->default(0)->unsigned()->comment('打印次数');
             $table->tinyInteger('status')->default(1)->comment('状态：-1.删除, 1.正常');
@@ -70,7 +71,7 @@ class CreateOperationTable extends Migration
             $table->char('hq_code', 16)->comment('公司编码');
             $table->integer('orgz_id')->unsigned()->comment('创建单据的组织ID');
             $table->tinyInteger('genre')->default(0)
-                ->comment('出库类型：0：出库单，1: 采购单据,2: 调拨 3: 退仓 4:配送差异 5:加工原料 6:供应商退货 7:门店要货 8:网单销售 9:红冲 10:销售出库 11:配送中心直配 12:配送中心销售');
+                ->comment('出库类型：1:销售出库 3:调拨出库 5:门店退仓出库 7:门店要货出库 9:加工原料 11:门店配送差异  13:网单销售 15:供应商退货 17:报损 19:盘点出库 21:红冲出库 23:配送中心直配出库 25:配送中心销售出库');
             $table->integer('creator_id')->comment('录入人ID');
             $table->integer('total_amount')->default(0)->comment('单据金额');
             $table->tinyInteger('confirmed')->default(0)->comment('是否审核：0.未审核，1.已审核，2.红冲');
@@ -79,7 +80,7 @@ class CreateOperationTable extends Migration
             $table->integer('supplier_id')->nullable()->comment('供应商ID');
             $table->datetime('delivery_date')->nullable()->comment('出库日期');
             $table->integer('auditor_id')->nullable()->comment('审核人ID');
-            $table->datetime('confirmed_date')->nullable()->comment('审核日期=出库日期');
+            $table->datetime('confirmed_date')->nullable()->comment('审核日期');
             $table->text('remark')->nullable()->comment('备注');
             $table->tinyInteger('print_num')->default(0)->unsigned()->comment('打印次数');
             $table->tinyInteger('status')->default(1)->comment('状态: -1.删除, 1.启用');

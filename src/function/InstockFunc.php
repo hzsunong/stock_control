@@ -26,11 +26,12 @@ class InstockFunc extends CommonFunc{
      * @param null|integer $supplier_id 供应商id
      * @param null|string $remark 备注
      * @param null|integer $auditor_id 审核人id  传值则为立即审核
+     * @param null|string $instock_date 入库时间
      * @param bool  $update_stock_price 是否更新库存价格
      * @return array
      */
     public function new_instock($hq_code,$orgz_id,$creator_id,$genre,$related_id,$products,$supplier_id=null,
-                                $remark=null, $auditor_id=null,$update_stock_price=false){
+                                $remark=null, $auditor_id=null,$instock_date=null,$update_stock_price=false){
         $start_time=$this->get_micro_time();
         $params=func_get_args();
         $this->log_record('info',$creator_id,'入库单新增开始',$params);
@@ -41,6 +42,7 @@ class InstockFunc extends CommonFunc{
         $related_id=is_numeric($related_id)?$related_id:null;
         $products=is_array($products) && !empty($products)?$products:null;
         $supplier_id=is_numeric($supplier_id)?$supplier_id:null;
+        $instock_date=trim($instock_date)!==''?trim($instock_date):null;
         $remark=trim($remark)!=''?$remark:null;
 
         if(!$hq_code || !$orgz_id || !$creator_id || !$genre || !$related_id || !$products){
@@ -66,7 +68,7 @@ class InstockFunc extends CommonFunc{
             $instock_code=$instock_model->create_code($hq_code);
             $instock_data=['code'=>$instock_code,'hq_code'=>$hq_code,'orgz_id'=>$orgz_id, 'total_amount'=>0,
                 'genre'=>$genre,'creator_id'=>$creator_id, 'supplier_id'=>$supplier_id,'related_id'=>$related_id,
-                'remark'=>$remark,'created_at'=>$now_time];
+                'remark'=>$remark,'instock_date'=>$instock_date,'created_at'=>$now_time];
 
             $instock_id=$instock_model->insertGetId($instock_data);
             $response['instock_id']=$instock_id;
