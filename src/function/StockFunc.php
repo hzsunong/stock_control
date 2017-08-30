@@ -137,12 +137,14 @@ class StockFunc extends CommonFunc{
 
     /**
      * @author Javen <w@juyii.com>
+     * @date 2017-08-30
      * @param string $hq_code
      * @param integer $orgz_id
      * @param integer $inventory_id 相关盘点id
      * @param integer $operator 操作员id
      * @param array $products 商品列表
-     * @return array
+     * $products=[ ['product_id=>1,'quantity'=>5.20,'package'=>2.33],...,...,[...] ];
+     * @return array 盘点相关商品
      */
     public function stock_inventory($hq_code,$orgz_id,$inventory_id,$operator,$products){
         $start_time=$this->get_micro_time();

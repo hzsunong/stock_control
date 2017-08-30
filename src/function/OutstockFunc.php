@@ -223,9 +223,10 @@ class OutstockFunc extends CommonFunc{
      * @param integer $offset 偏移量
      * @param null|integer $genre 类型
      * @param null|integer $confirmed 审核状态
+     * @param null|array $or_where 查询条件
      * @return array 获取出库单列表
      */
-    public function outstock_list($hq_code,$orgz_id,$limit=20,$offset=0,$genre=null,$confirmed=null){
+    public function outstock_list($hq_code,$orgz_id,$limit=20,$offset=0,$genre=null,$confirmed=null,$or_where=null){
         $start_time=$this->get_micro_time();
         $params=func_get_args();
         $this->log_record('info','null','出库单列表获取开始',$params);
@@ -235,6 +236,7 @@ class OutstockFunc extends CommonFunc{
         $offset=is_numeric($offset)?$offset:0;
         $genre=is_numeric($genre)?$genre:null;
         $confirmed=is_numeric($confirmed)?$confirmed:null;
+        $or_where=is_array($or_where) && !empty($or_where)?$or_where:null;
 
         if(!$hq_code || !$orgz_id){
             $result=['code'=>'10000','msg'=>'参数缺失'];
@@ -243,7 +245,7 @@ class OutstockFunc extends CommonFunc{
         }
 
         $outstock_model=new Outstock();
-        $outstock_list=$outstock_model->get_outstock_list($hq_code,$orgz_id,$limit,$offset,$genre,$confirmed);
+        $outstock_list=$outstock_model->get_outstock_list($hq_code,$orgz_id,$limit,$offset,$genre,$confirmed,$or_where);
         if($outstock_list==null){
             $result=['code'=>'0','msg'=>'出库单列表获取成功:但没有符合筛选条件的数据','total'=>0,'data'=>[]];
             $this->log_record('info','null','出库单列表获取成功:但没有符合筛选条件的数据 耗时:'.($this->get_micro_time()-$start_time),$params);

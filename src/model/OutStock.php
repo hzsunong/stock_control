@@ -63,17 +63,30 @@ class Outstock extends Core{
      * @param integer $orgz_id
      * @param integer $limit
      * @param integer $offset
-     * @param null|integer $genre
-     * @param null|integer $confirmed
+     * @param null|integer $genre 类型
+     * @param null|integer $confirmed 审核状态
+     * @param null|array $or_where orWhere条件
      * @return null|array 获取出库单列表
      */
-    public function get_outstock_list($hq_code,$orgz_id,$limit=20,$offset=0,$genre=null,$confirmed=null){
+    public function get_outstock_list($hq_code,$orgz_id,$limit=20,$offset=0,$genre=null,$confirmed=null,$or_where=null){
         $data=$this->where('hq_code',$hq_code)->where('orgz_id',$orgz_id);
         if($genre!=null) $data->where('genre',$genre);
         if($confirmed!=null) $data->where('confirmed',$confirmed);
+        if(is_array($or_where) && !empty($or_where)){
+            $data->where(function ($query) use($or_where){
+                foreach ($or_where as $item){
+                    $orWhere=$this->resolver_orWhere($item);
+                    if($orWhere==null) continue;
+                    $filed=reset($orWhere);
+                    $operate=next($orWhere);
+                    $value=next($orWhere);
+                    $query->orWhere($filed,$operate,$value);
+                }
+            });
+        }
         $result['total']=$data->count();
         if($result['total']==0) return null;
-        $result['data']=$data->orderBy('id','desc')->limit($limit)->offset($offset)->get()->toArray();
+        $result['data']=$data->limit($limit)->offset($offset)->get()->toArray();
         return $result;
     }
 
