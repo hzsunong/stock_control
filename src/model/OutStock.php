@@ -80,7 +80,19 @@ class Outstock extends Core{
                     $filed=reset($orWhere);
                     $operate=next($orWhere);
                     $value=next($orWhere);
-                    $query->orWhere($filed,$operate,$value);
+                    switch ($operate){
+                        case 'in':
+                            $query->orWhereIn($filed,$value);
+                            break;
+                        case 'between':
+                            $query->orWhereBetween($filed,$value);
+                            break;
+                        case 'not_in':
+                            $query->orWhereNotIn($filed,$value);
+                            break;
+                        default:
+                            $query->orWhere($filed,$operate,$value);
+                    }
                 }
             });
         }
