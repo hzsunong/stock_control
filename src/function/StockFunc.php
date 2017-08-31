@@ -223,7 +223,7 @@ class StockFunc extends CommonFunc{
                 }
 
                 $instock_response=$instock_func->new_instock($hq_code,$orgz_id,$operator,18,$inventory_id,$product_info,null,
-                    '盘点生成入库单',$operator);
+                    '盘点生成入库单',$operator,date('Y-m-d H:i:s'));
                 if($instock_response['code']!='0'){
                     DB::rollBack();
                     $result=['code'=>'10000','msg'=>'盘点生成入库单失败','data'=>$instock_response];
