@@ -172,9 +172,9 @@ class CreateOperationTable extends Migration
             $table->float('package', 16, 3)->comment('批次件数');
             $table->float('inventory', 16, 3)->comment('库存数量：值变化直到为0');
             $table->integer('supplier_id')->nullable()->comment('供应商id');
-            $table->float('instock_num', 16, 3)->nullable()->comment('入库数量');
-            $table->float('outstock_num', 16, 3)->nullable()->comment('出库数量');
-            $table->float('sales_num', 16, 3)->nullable()->comment('销售数量');
+            $table->float('instock_num', 16, 3)->default(0)->comment('入库数量');
+            $table->float('outstock_num', 16, 3)->default(0)->comment('出库数量');
+            $table->float('sales_num', 16, 3)->default(0)->comment('销售数量');
             $table->tinyInteger('status')->default(1)->comment('状态：-1.删除，1.启用');
             $table->timestamps();
             $table->comment = '库存批次表';

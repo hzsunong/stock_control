@@ -93,8 +93,8 @@ class StockBatch extends Core{
                 ->where($join_table.'.inventory', '>', 0)
                 ->orderBy('stock_batch.created_at', 'asc')
                 ->chunk(5, function($records) use(&$left_quantity,&$changed_detail,&$deducted_price, &$stock_change_genre,$related_id,$stock_model){
-                    $om = new StockBatchContent();
-                    $fw = new StockBatchFlow;
+                    $sbc_model = new StockBatchContent();
+                    $sbf_model = new StockBatchFlow;
                     foreach ($records as $record)
                     {
 
@@ -114,7 +114,7 @@ class StockBatch extends Core{
                         //待扣减数量大于该批次库存数量
                         if ($left_quantity >= $record->inventory)
                         {
-                            $om->where('id', $record->content_id)->update(['inventory'=>0,'outstock_num'=>DB::raw("outstock_num+$record->inventory")]);
+                            $sbc_model->where('id', $record->content_id)->update(['inventory'=>0,'outstock_num'=>DB::raw("outstock_num+$record->inventory")]);
                             $left_quantity -= $record->inventory;
                             $changed_detail[]=[
                                 'stock_batch_content_id'=>$record->content_id,
@@ -135,12 +135,12 @@ class StockBatch extends Core{
                                 $flow['package'] = number_format($flow['quantity']/$flow['spec_num'], 3,'.','');
                             }
                             $flow['total_amount'] = number_format($flow['price'] * $flow['quantity'],0,'.','');
-                            $fw->insert($flow);
+                            $sbf_model->insert($flow);
                         }
                         else
                         {
                             $deducted_price+=($left_quantity*$record->price);
-                            $om->where('id', $record->content_id)
+                            $sbc_model->where('id', $record->content_id)
                                 ->update(['inventory'=>DB::raw("inventory-$left_quantity"),'outstock_num'=>DB::raw("outstock_num+$left_quantity")]);
                             $changed_detail[]=[
                                 'stock_batch_content_id'=>$record->content_id,
@@ -161,7 +161,7 @@ class StockBatch extends Core{
                                 $flow['package'] = number_format($flow['quantity']/$flow['spec_num'], 3,'.','');
                             }
                             $flow['total_amount'] = number_format($flow['price'] * $flow['quantity'],0,'.','');
-                            $fw->insert($flow);
+                            $sbf_model->insert($flow);
                             break;
                         }
                     }
@@ -185,9 +185,7 @@ class StockBatch extends Core{
                     ->where($join_table.'.inventory', '<', 0)
                     ->orderBy('stock_batch.created_at', 'desc')
                     ->first();
-                $fw = new StockBatchFlow;
-                $item['quantity']-=$left_quantity;
-
+                $sbf_model = new StockBatchFlow;
                 if ($record)
                 {
                     $flow = array(
@@ -204,27 +202,11 @@ class StockBatch extends Core{
                     );
                     $amount=number_format($record->price*$left_quantity,0,',','');
                     // 若负批次存在，在该批次中扣减
-                    $om = new StockBatchContent;
-                    $stock_arr=[
-                        'inventory'=>DB::raw("inventory-$left_quantity"),
-                        'outstock_num'=>DB::raw("outstock_num+$left_quantity"),
-                        'total_amount'=>DB::raw("total_amount-$amount"),
-                    ];
+                    $sbc_model = new StockBatchContent;
+                    $stock_arr=['inventory'=>DB::raw("inventory-$left_quantity"),
+                        'outstock_num'=>DB::raw("outstock_num+$left_quantity")];
 
-//                    if ($operation==1)
-//                    {
-//                        $stock_arr['instock_num'] = DB::raw("instock_num+$left_quantity");
-//                    }
-//                    elseif($operation==2)
-//                    {
-//                        $quantity_abs=abs($left_quantity);
-//                        $stock_arr['outstock_num'] = DB::raw("outstock_num+$quantity_abs");
-//                    }else{
-//                        $quantity_abs=abs($left_quantity);
-//                        $stock_arr['sales_num'] = DB::raw("sales_num+$quantity_abs");
-//                    }
-
-                    $om->where('id', $record->content_id)
+                    $sbc_model->where('id', $record->content_id)
                         ->update($stock_arr);
                     $changed_detail[]=[
                         'stock_batch_content_id'=>$record->content_id,
@@ -245,21 +227,21 @@ class StockBatch extends Core{
                         $flow['package'] = number_format($flow['quantity']/$flow['spec_num'], 3,'.','');
                     }
                     $flow['total_amount'] = number_format($flow['price'] * $flow['quantity'],0,'.','');
-                    $fw->insert($flow);
+                    $sbf_model->insert($flow);
                 }
                 else
                 {
                     // 新增负批次
                     $arr = ['product_id' => $item['product_id'], 'quantity' => -$left_quantity,'package'=>$item['package']];
-                    $product_info=$stock_model->get_product_info_by_product_id($hq_code,$orgz_id,$item['product_id']);
-                    if($product_info==null) return false;
-                    $arr['spec_num']=$product_info->spec_num;
-                    $arr['spec_unit']=$product_info->spec_unit;
-                    $arr['price']=$product_info->price;
+                    $stock_product_info=$stock_model->get_product_info_by_product_id($hq_code,$orgz_id,$item['product_id']);
+                    if($stock_product_info==null) return false;
+                    $arr['spec_num']=$stock_product_info->spec_num;
+                    $arr['spec_unit']=$stock_product_info->spec_unit;
+                    $arr['price']=$stock_product_info->price;
 
                     $info = array($arr);
 
-                    $res = $this->add_stock_batch($hq_code, $orgz_id,$related_id,$stock_change_genre ,$info,$operation);
+                    $res = $this->add_stock_batch($hq_code, $orgz_id,$related_id,$stock_change_genre ,$info,$operation,false,false);
                     if (!isset($res['details']))
                     {
                         return false;
@@ -298,10 +280,12 @@ class StockBatch extends Core{
      * @param array $product_info 数据示例
      * 商品信息 [ ['product_id'=>1,'quantity'=>5,'package'=>2,'spec_num'=>2.5,'spec_unit'=>'斤','supplier_id'=>null] ]
      * @param integer $operation 1:入库单,2:出库单,3:销售
-     * @param bool $update_stock_price 是否更新库存价格
+     * @param bool $update_last_price 是否更新最近一次批次进价
+     * @param bool $update_stock 同时更新库存信息
      * @return array|false ['stock_batch_id'=>55,'detail'=>$detail]
      */
-    public function add_stock_batch($hq_code,$orgz_id,$related_id,$genre,$product_info,$operation,$update_stock_price=false){
+    public function add_stock_batch($hq_code,$orgz_id,$related_id,$genre,$product_info,$operation,$update_last_price=false,
+                                    $update_stock=true){
         $stock = new Stock();
         $sbc_model = new StockBatchContent();
         $sbf_model = new StockBatchFlow();
@@ -348,7 +332,7 @@ class StockBatch extends Core{
             $details[]=$detail;
 
             // 更新库存表商品最新批次单价
-            if ($update_stock_price && $detail['spec_num'] != 0)
+            if ($update_last_price && $detail['spec_num'] != 0)
             {
                 $stock->where('hq_code', $hq_code)
                     ->where('orgz_id', $orgz_id)
@@ -378,11 +362,10 @@ class StockBatch extends Core{
 
         $result['details'] = $details;
         $result['amount'] = $amount;
-        $update=$stock->update_product_stock($hq_code,$orgz_id,$related_id,$genre,$product_info,$operation);
-        if($update){
-            return $result;
-        }else{
-            return false;
+        if($update_stock){
+            $update=$stock->update_product_stock($hq_code,$orgz_id,$related_id,$genre,$product_info,$operation);
+            if(!$update) return false;
         }
+        return $result;
     }
 }

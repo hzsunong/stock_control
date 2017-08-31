@@ -110,12 +110,8 @@ class OutstockFunc extends CommonFunc{
                 $result['amount']=$confirm_result['amount'];
                 $result['detail']=$confirm_result['data'];
             }elseif(isset($confirm_result) && $confirm_result['code']!='0'){
-                $this->log_record('error',$creator_id,'入库单新增失败,原因:'.json_encode($confirm_result['msg']),$params);
-                return ['code'=>'10000','msg'=>'入库单新增失败','data'=>$confirm_result['msg']];
-            }else{
-                $this->log_record('error',$creator_id,'出库单新增失败,原因未知',$params);
-                return ['code'=>'10000','msg'=>'处库单新增失败,原因未知','data'=>[]];
-
+                $this->log_record('error',$creator_id,'出库单新增失败,原因:'.json_encode($confirm_result['msg']),$params);
+                return ['code'=>'10000','msg'=>'出库单新增失败','data'=>$confirm_result['msg']];
             }
             return $result;
         }catch (\Exception $exception){

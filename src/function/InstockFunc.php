@@ -108,10 +108,6 @@ class InstockFunc extends CommonFunc{
             }elseif(isset($instock_response) && $instock_response['code']!='0'){
                 $this->log_record('error',$creator_id,'入库单新增失败,原因:'.json_encode($instock_response['msg']),$params);
                 return ['code'=>'10000','msg'=>'入库单新增失败','data'=>$instock_response['msg']];
-            }else{
-                $this->log_record('error',$creator_id,'入库单新增失败,原因未知',$params);
-                return ['code'=>'10000','msg'=>'入库单新增失败,原因未知','data'=>[]];
-
             }
             $this->log_record('info',$creator_id,'入库单新增成功 id:'.$instock_id.' 耗时:'.($this->get_micro_time()-$start_time),$params);
             return $result;
@@ -181,7 +177,6 @@ class InstockFunc extends CommonFunc{
                 DB::rollBack();
                 $this->log_record('info',$auditor_id,'入库单审核失败 耗时:'.($this->get_micro_time()-$start_time).' 库存变动失败或库存信息不存在',$params);
                 return ['code'=>'10000','msg'=>'入库单审核失败 库存变动失败或库存信息不存在','data'=>null];
-
             }
         }catch (\Exception $e){
             DB::rollBack();
