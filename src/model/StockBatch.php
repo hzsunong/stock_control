@@ -186,6 +186,7 @@ class StockBatch extends Core{
                     ->orderBy('stock_batch.created_at', 'desc')
                     ->first();
                 $fw = new StockBatchFlow;
+                $item['quantity']-=$left_quantity;
 
                 if ($record)
                 {
@@ -201,16 +202,37 @@ class StockBatch extends Core{
                         'genre' => $stock_change_genre,
                         'related_id' => $related_id
                     );
+                    $amount=number_format($record->price*$left_quantity,0,',','');
                     // 若负批次存在，在该批次中扣减
                     $om = new StockBatchContent;
-                    $om->where('id', $record->content_id)->update(['inventory'=>DB::raw("inventory-$left_quantity"),'outstock_num'=>DB::raw("outstock_num+$left_quantity")]);
+                    $stock_arr=[
+                        'inventory'=>DB::raw("inventory-$left_quantity"),
+                        'outstock_num'=>DB::raw("outstock_num+$left_quantity"),
+                        'total_amount'=>DB::raw("total_amount-$amount"),
+                    ];
+
+//                    if ($operation==1)
+//                    {
+//                        $stock_arr['instock_num'] = DB::raw("instock_num+$left_quantity");
+//                    }
+//                    elseif($operation==2)
+//                    {
+//                        $quantity_abs=abs($left_quantity);
+//                        $stock_arr['outstock_num'] = DB::raw("outstock_num+$quantity_abs");
+//                    }else{
+//                        $quantity_abs=abs($left_quantity);
+//                        $stock_arr['sales_num'] = DB::raw("sales_num+$quantity_abs");
+//                    }
+
+                    $om->where('id', $record->content_id)
+                        ->update($stock_arr);
                     $changed_detail[]=[
                         'stock_batch_content_id'=>$record->content_id,
                         'quantity'=>-$left_quantity,
                         'product_id'=>$record->product_id,
                         'price'=>$record->price,
                         'spec_num'=>$record->spec_num,
-                        'amount'=>number_format(-$left_quantity*$record->price,0,'.','')
+                        'amount'=>-$amount
                     ];
                     $deducted_price+=($left_quantity*$record->price);
                     $flow['quantity'] = -$left_quantity;

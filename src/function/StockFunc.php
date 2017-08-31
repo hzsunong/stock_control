@@ -124,15 +124,25 @@ class StockFunc extends CommonFunc{
         }
 
         $stock_batch_model=new StockBatch();
-        $result=$stock_batch_model->deduct_stock_batch($hq_code,$orgz_id,$related_id,$genre,$products,3);
-        if(!$result){
-            $result=['code'=>'10000','msg'=>'销售扣减库存失败:库存变动失败或库存信息不存在'];
-            $this->log_record('error','null','销售扣减库存失败:库存变动失败或库存信息不存在',$params);
+        DB::beginTransaction();
+        try{
+            $result=$stock_batch_model->deduct_stock_batch($hq_code,$orgz_id,$related_id,$genre,$products,3);
+            if(!$result){
+                DB::rollBack();
+                $result=['code'=>'10000','msg'=>'销售扣减库存失败:库存变动失败或库存信息不存在'];
+                $this->log_record('error','null','销售扣减库存失败:库存变动失败或库存信息不存在',$params);
+                return $result;
+            }
+            DB::commit();
+            $result=['code'=>'0','msg'=>'销售扣减库存成功','amount'=>$result['amount'],'data'=>$result['detail']];
+            $this->log_record('error','null','销售扣减库存成功 耗时:'.($this->get_micro_time()-$start_time),$params);
+            return $result;
+        }catch (\Exception $e){
+            DB::rollBack();
+            $result=['code'=>'10000','msg'=>'销售扣减库存失败','data'=>$e->getMessage()];
+            $this->log_record('error','null','销售扣减库存失败:原因:'.json_encode($e->getMessage()),$params);
             return $result;
         }
-        $result=['code'=>'0','msg'=>'销售扣减库存成功','amount'=>$result['amount'],'data'=>$result['detail']];
-        $this->log_record('error','null','销售扣减库存成功 耗时:'.($this->get_micro_time()-$start_time),$params);
-        return $result;
     }
 
     /**

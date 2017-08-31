@@ -72,7 +72,7 @@ class Outstock extends Core{
     public function get_outstock_list($hq_code,$orgz_id,$date_range,$limit=20,$offset=0,$genre=null,$confirmed=null,$or_where=null){
         $start_time=reset($date_range);
         $end_time=next($date_range);
-        $data=$this->where('hq_code',$hq_code)->where('orgz_id',$orgz_id)->whereBetween('delivery_date',[$start_time,$end_time]);
+        $data=$this->where('hq_code',$hq_code)->where('orgz_id',$orgz_id)->whereBetween('created_at',[$start_time,$end_time]);
         if($genre!=null) $data->where('genre',$genre);
         if($confirmed!=null) $data->where('confirmed',$confirmed);
         if(is_array($or_where) && !empty($or_where)){
@@ -101,7 +101,7 @@ class Outstock extends Core{
         }
         $result['total']=$data->count();
         if($result['total']==0) return null;
-        $result['data']=$data->limit($limit)->offset($offset)->get()->toArray();
+        $result['data']=$data->orderBy('id','desc')->limit($limit)->offset($offset)->get()->toArray();
         return $result;
     }
 
@@ -128,7 +128,7 @@ class Outstock extends Core{
      */
     public function get_outstock_id_by_product_ids($hq_code,$orgz_id,$product_ids){
         $data=$this->select('outstock_content.outstock_id')
-            ->join('outstock_content','outstock_cotnent.outstock_id','=','outstock.id')
+            ->join('outstock_content','outstock_content.outstock_id','=','outstock.id')
             ->where('outstock.hq_code',$hq_code)->where('outstock.orgz_id',$orgz_id)->where('outstock.status',1)
             ->whereIn('outstock_content.product_id',$product_ids)->where('outstock_content.status',1)->get();
         if($data==null) return null;

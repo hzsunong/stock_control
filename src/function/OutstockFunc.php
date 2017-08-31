@@ -110,8 +110,8 @@ class OutstockFunc extends CommonFunc{
                 $result['amount']=$confirm_result['amount'];
                 $result['detail']=$confirm_result['data'];
             }elseif(isset($confirm_result) && $confirm_result['code']!='0'){
-                $this->log_record('error',$creator_id,'入库单新增失败,原因:'.json_encode($confirm_result['data']),$params);
-                return ['code'=>'10000','msg'=>'入库单新增失败','data'=>$confirm_result['data']];
+                $this->log_record('error',$creator_id,'入库单新增失败,原因:'.json_encode($confirm_result['msg']),$params);
+                return ['code'=>'10000','msg'=>'入库单新增失败','data'=>$confirm_result['msg']];
             }else{
                 $this->log_record('error',$creator_id,'出库单新增失败,原因未知',$params);
                 return ['code'=>'10000','msg'=>'处库单新增失败,原因未知','data'=>[]];
@@ -131,9 +131,10 @@ class OutstockFunc extends CommonFunc{
      * @param string $hq_code
      * @param integer $outstock_id 出库单id
      * @param integer $auditor_id 审核人id
+     * @param string $delivery_date 出库时间
      * @return array 审核出库单
      */
-    public function confirm_outstock($hq_code,$orgz_id,$outstock_id,$auditor_id){
+    public function confirm_outstock($hq_code,$orgz_id,$outstock_id,$auditor_id,$delivery_date=null){
         $start_time=$this->get_micro_time();
         $now_time=date('Y-m-d H:i:s');
         $params=func_get_args();
@@ -142,6 +143,7 @@ class OutstockFunc extends CommonFunc{
         $orgz_id=is_numeric($orgz_id)?$orgz_id:null;
         $outstock_id=is_numeric($outstock_id)?$outstock_id:null;
         $auditor_id=is_numeric($auditor_id)?$auditor_id:null;
+        $delivery_date=trim($delivery_date)!=''?$delivery_date:null;
 
         if(!$hq_code || !$orgz_id || !$outstock_id || !$auditor_id){
             $result=['code'=>'10000','msg'=>'参数缺失'];
@@ -180,8 +182,10 @@ class OutstockFunc extends CommonFunc{
             }
             $deducted_amount=-$result['amount'];
             $detail=$result['detail'];
+            $stock_data=['confirmed'=>1,'auditor_id'=>$auditor_id,'confirmed_date'=>$now_time,'total_amount'=>$deducted_amount];
+            if($delivery_date!==null) $stock_data['delivery_date']=$delivery_date;
             $outstock_model->where('id',$outstock_id)
-                ->update(['confirmed'=>1,'auditor_id'=>$auditor_id,'confirmed_date'=>$now_time,'total_amount'=>$deducted_amount]);
+                ->update($stock_data);
 
             foreach ($detail as $item){
                 $stock_batch_content_id=$item['stock_batch_content_id'];

@@ -127,7 +127,7 @@ class Instock extends Core{
      */
     public function get_instock_id_by_product_ids($hq_code,$orgz_id,$product_ids){
         $data=$this->select('instock_content.instock_id')
-            ->join('instock_content','instock_cotnent.instock_id','=','instock.id')
+            ->join('instock_content','instock_content.instock_id','=','instock.id')
             ->where('instock.hq_code',$hq_code)->where('instock.orgz_id',$orgz_id)->where('instock.status',1)
             ->whereIn('instock_content.product_id',$product_ids)->where('instock_content.status',1)->get();
         if($data==null) return null;
