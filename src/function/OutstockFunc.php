@@ -178,9 +178,8 @@ class OutstockFunc extends CommonFunc{
                 DB::rollBack();
                 return $result;
             }
-            $deducted_amount=-$result['amount'];
             $detail=$result['detail'];
-            $stock_data=['confirmed'=>1,'auditor_id'=>$auditor_id,'confirmed_date'=>$now_time,'total_amount'=>$deducted_amount];
+            $stock_data=['confirmed'=>1,'auditor_id'=>$auditor_id,'confirmed_date'=>$now_time,'total_amount'=>-$result['amount']];
             if($delivery_date!==null) $stock_data['delivery_date']=$delivery_date;
             $outstock_model->where('id',$outstock_id)
                 ->update($stock_data);
@@ -190,7 +189,7 @@ class OutstockFunc extends CommonFunc{
                 $product_id=$item['product_id'];
                 $quantity=-$item['quantity'];
                 $price=$item['price'];
-                $amount=$item['amount'];
+                $amount=-$item['amount'];
                 $spec_num=$products_map[$product_id]['spec_num'];
                 $spec_unit=$products_map[$product_id]['spec_unit'];
                 $remark=$products_map[$product_id]['remark'];
@@ -209,7 +208,7 @@ class OutstockFunc extends CommonFunc{
             }
             DB::commit();
             $this->log_record('info',$auditor_id,'出库单审核成功 耗时:'.($this->get_micro_time()-$start_time).' 更新明细:'.json_encode($result),$params);
-            return ['code'=>'0','msg'=>'出库单审核成功','bill_id'=>$outstock_id,'amount'=>$deducted_amount,'data'=>$detail];
+            return ['code'=>'0','msg'=>'出库单审核成功','bill_id'=>$outstock_id,'amount'=>$result['amount'],'data'=>$detail];
         }catch (\Exception $e){
             DB::rollBack();
             $this->log_record('info',$auditor_id,'出库单审核失败 原因:'.json_encode($e->getMessage()),$params);

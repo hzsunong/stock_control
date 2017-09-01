@@ -268,7 +268,7 @@ class StockFunc extends CommonFunc{
                     if(isset($temp_content[$product_id])){
                         $temp_content[$product_id]['batch_info'][]=$item;
                     }else{
-                        $temp_content[]=['product_id'=>$product_id,'before_quantity'=>$outstock_collect[$product_id]['before_quantity'],
+                        $temp_content[$product_id]=['product_id'=>$product_id,'before_quantity'=>$outstock_collect[$product_id]['before_quantity'],
                             'change_quantity'=>$outstock_collect[$product_id]['change_quantity'],
                             'after_quantity'=>$outstock_collect[$product_id]['after_quantity'],
                             'amount'=>$outstock_amount,'batch_info'=>[$item]];
