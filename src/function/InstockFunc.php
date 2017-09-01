@@ -82,11 +82,13 @@ class InstockFunc extends CommonFunc{
                 $ic_data['package']=isset($product['package']) && is_numeric($product['package'])?$product['package']:null;
                 $ic_data['remark']=isset($product['remark']) && trim($product['remark'])!=''?$product['remark']:null;
                 $ic_data['created_at']=$now_time;
-                if(!$ic_data['product_id'] || !$ic_data['spec_unit'] || !is_numeric($ic_data['price']) || !$ic_data['quantity'] || !$ic_data['package']){
+                if(!$ic_data['product_id'] || !$ic_data['spec_unit'] || !is_numeric($ic_data['price']) ||
+                    !is_numeric($ic_data['quantity']) || !is_numeric($ic_data['package'])){
                     DB::rollBack();
                     $this->log_record('error',$creator_id,'商品详情参数缺失',$params);
                     return ['code'=>'10000','msg'=>'商品详情参数缺失'];
                 }
+                if($ic_data['package']==0) $ic_data['package']=1;
                 $ic_data['spec_num']=isset($product['spec_num']) && is_numeric($product['spec_num'])
                     ? $product['spec_num'] : number_format($ic_data['quantity']/$ic_data['package'],3,'.','');
                 $ic_data['amount']=isset($product['amount']) && is_numeric($product['amount'])

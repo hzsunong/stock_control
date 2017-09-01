@@ -7,6 +7,7 @@
 namespace SuNong\StockControl\Func;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use SuNong\StockControl\Model\Instock;
 use SuNong\StockControl\Model\Outstock;
 use SuNong\StockControl\Model\Stock;
@@ -55,14 +56,14 @@ class StockFunc extends CommonFunc{
     public function init_stock($hq_code,$orgz_id,$products){
         $start_time=$this->get_micro_time();
         $params=func_get_args();
-        $this->log_record('info','null','库存信息初始化开始',$params);
+        Log::info('stock_control:库存信息初始化开始 参数:'.json_encode($params));
         $hq_code=trim($hq_code)!=''?$hq_code:null;
         $orgz_id=is_numeric($orgz_id)?$orgz_id:null;
         $products=is_array($products) && !empty($products) ? $products : null;
 
         if(!$hq_code || !$orgz_id || !$products){
             $result=['code'=>'10000','msg'=>'参数缺失'];
-            $this->log_record('error','null','库存信息初始化失败:参数缺失',$params);
+            Log::error('stock_control:库存信息初始化失败:参数缺失:'.json_encode($params));
             return $result;
         }
 
@@ -78,7 +79,7 @@ class StockFunc extends CommonFunc{
 
                 if(!$product_id || $price===null || $spec_num===null || !$spec_unit){
                     $result=['code'=>'10000','msg'=>'商品参数缺失'];
-                    $this->log_record('error','null','库存信息初始化失败:参数缺失',$params);
+                    Log::error('stock_control:库存信息初始化失败:商品参数缺失:'.json_encode($params));
                     return $result;
                 }
 
@@ -86,12 +87,12 @@ class StockFunc extends CommonFunc{
                     'price'=>$price,'quantity'=>0,'spec_unit'=>$spec_unit,'spec_num'=>$spec_num]);
                 if(is_numeric($stock_id)) $insert_product_list[]=$product_id;
             }
-            $this->log_record('info','null','库存信息初始化成功 耗时:'.($this->get_micro_time()-$start_time),$params);
+            Log::info('stock_control:库存信息初始化成功 耗时:'.($this->get_micro_time()-$start_time).' 参数:'.json_encode($params));
             DB::commit();
             return ['code'=>'0','msg'=>'库存信息初始化成功','data'=>$insert_product_list];
         }catch (\Exception $exception){
             $result=['code'=>'10000','msg'=>'库存信息初始化失败','data'=>$exception->getMessage()];
-            $this->log_record('error','null','库存信息初始化失败'.' 耗时:'.($this->get_micro_time()-$start_time).' 原因:'.json_encode($exception->getMessage()),$params);
+            Log::error('stock_control:库存信息初始化失败:原因:'.json_encode($exception->getMessage()).' 耗时:'.($this->get_micro_time()-$start_time));
             return $result;
         }
 
