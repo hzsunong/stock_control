@@ -6,19 +6,19 @@
  */
 namespace SuNong\StockControl\Test;
 
-use SuNong\StockControl\Func\InstockFunc;
+use SuNong\StockControl\Facade\InstockFacade;
 
 class InstockTest{
 
     public function add_instock(){
-        $instock_func=new InstockFunc();
+        $instock_facade=new InstockFacade();
         $products=[];
-        $result=$instock_func->new_instock('000001',1,1,2,2,$products,1,'备注',5);
+        $result=$instock_facade->new_instock('000001',1,1,2,2,$products,1,'备注',5);
     }
 
     public function instock_list(){
-        $instock_func=new InstockFunc();
-        $result=$instock_func->instock_list('000001',1,20,0,null,null,[['code','like',"%00%"]]);
+        $instock_facade=new InstockFacade();
+        $result=$instock_facade->instock_list('000001',1,20,0,null,null,[['code','like',"%00%"]]);
         print_r($result);die;
     }
 }

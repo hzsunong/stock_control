@@ -16,9 +16,11 @@
     "autoload": {
         "psr-4": {
             "SuNong\\StockControl\\": "src/",
-            "SuNong\\StockControl\\Model\\": "src/model/",
-            "SuNong\\StockControl\\Func\\": "src/function/",
-            "SuNong\\StockControl\\Test\\": "src/test/"
+            "SuNong\\StockControl\\Model\\": "src/Model/",
+            "SuNong\\StockControl\\Func\\": "src/Func/",
+            "SuNong\\StockControl\\Facade\\": "src/Facade/",
+            "SuNong\\StockControl\\Test\\": "src/Test/",
+            "SuNong\\StockControl\\Service\\": "src/Service/"
         }
     }
 }

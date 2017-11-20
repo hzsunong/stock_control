@@ -6,7 +6,7 @@
  */
 namespace SuNong\StockControl\Test;
 
-use SuNong\StockControl\Func\StockFunc;
+use SuNong\StockControl\Facade\StockFacade;
 
 class StockTest{
     /**
@@ -14,7 +14,7 @@ class StockTest{
      * 销售扣减库存
      */
     public function sales_deduct_stock(){
-        $stock_func=new StockFunc();
+        $stock_facade=new StockFacade();
 
         $products=[
             [
@@ -23,12 +23,12 @@ class StockTest{
                 'package'=>1
             ]
         ];
-        $result=$stock_func->sales_deduct_stock('000001',1,5,2,$products);
+        $result=$stock_facade->sales_deduct_stock('000001',1,5,2,$products);
         print_r($result);die;
     }
 
     public function stock_inventory(){
-        $stock_func=new StockFunc();
+        $stock_facade=new StockFacade();
         $products=[
             [
                 'product_id'=>116,
@@ -36,7 +36,7 @@ class StockTest{
                 'package'=>2
             ]
         ];
-        $result=$stock_func->stock_inventory('000001',1,5,2,$products);
+        $result=$stock_facade->stock_inventory('000001',1,5,2,$products);
         print_r($result);die;
     }
 }

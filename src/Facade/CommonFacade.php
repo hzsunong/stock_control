@@ -4,11 +4,11 @@
  * Date: 2017/8/23
  * Time: 下午3:56
  */
-namespace SuNong\StockControl\Func;
+namespace SuNong\StockControl\Facade;
 
 use Illuminate\Support\Facades\Log;
 
-class CommonFunc{
+class CommonFacade{
     /**
      * 20170213
      * @author 过佳峰 <guojiafeng@comteck.cn>

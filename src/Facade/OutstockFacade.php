@@ -4,16 +4,14 @@
  * Date: 2017/8/23
  * Time: 下午3:42
  */
-namespace SuNong\StockControl\Func;
+namespace SuNong\StockControl\Facade;
 
 use Illuminate\Support\Facades\DB;
-use SuNong\StockControl\Model\Instock;
-use SuNong\StockControl\Model\InstockContent;
 use SuNong\StockControl\Model\Outstock;
 use SuNong\StockControl\Model\OutstockContent;
 use SuNong\StockControl\Model\StockBatch;
 
-class OutstockFunc extends CommonFunc{
+class OutstockFacade extends CommonFacade{
     //出库单相关方法
 
     /**

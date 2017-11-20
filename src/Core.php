@@ -36,8 +36,8 @@ class Core extends Model{
      */
     public function __construct(){
         parent::__construct();
-        $table=config('stock_control.table',[]);
-        foreach ($table as $table=>$name){
+        $tables=config('stock_control.table',[]);
+        foreach ($tables as $table=>$name){
             $table='_'.$table;
             $this->$table=$name;
         }

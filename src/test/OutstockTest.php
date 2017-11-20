@@ -6,12 +6,12 @@
  */
 namespace SuNong\StockControl\Test;
 
-use SuNong\StockControl\Func\OutstockFunc;
+use SuNong\StockControl\Facade\OutstockFacade;
 
 class OutstockTest{
     public function new_outstock(){
-        $outstock_func=new OutstockFunc();
+        $outstock_facade=new OutstockFacade();
         $products=[];
-        $result=$outstock_func->new_outstock('000001',1,1,2,1,$products,5);
+        $result=$outstock_facade->new_outstock('000001',1,1,2,1,$products,5);
     }
 }

@@ -4,16 +4,14 @@
  * Date: 2017/8/23
  * Time: 下午11:41
  */
-namespace SuNong\StockControl\Func;
+namespace SuNong\StockControl\Facade;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use SuNong\StockControl\Model\Instock;
-use SuNong\StockControl\Model\Outstock;
 use SuNong\StockControl\Model\Stock;
 use SuNong\StockControl\Model\StockBatch;
 
-class StockFunc extends CommonFunc{
+class StockFunc extends CommonFacade{
 
     /**
      * @author Javen <w@juyii.com>
@@ -174,8 +172,8 @@ class StockFunc extends CommonFunc{
         }
 
         $stock_model=new Stock();
-        $instock_func=new InstockFunc();
-        $outstock_func=new OutstockFunc();
+        $instock_facade=new InstockFacade();
+        $outstock_facade=new OutstockFacade();
 
         //对比库存数据,筛选盘亏盘盈商品
         $instock_list=[];
@@ -223,7 +221,7 @@ class StockFunc extends CommonFunc{
                         'price'=>$product_map[$product_id]['price'],'spec_unit'=>$product_map[$product_id]['spec_unit']];
                 }
 
-                $instock_response=$instock_func->new_instock($hq_code,$orgz_id,$operator,18,$inventory_id,$product_info,null,
+                $instock_response=$instock_facade->new_instock($hq_code,$orgz_id,$operator,18,$inventory_id,$product_info,null,
                     '盘点生成入库单',$operator,date('Y-m-d H:i:s'));
                 if($instock_response['code']!='0'){
                     DB::rollBack();
@@ -251,7 +249,7 @@ class StockFunc extends CommonFunc{
                         'price'=>$product_map[$product_id]['price'],'spec_unit'=>$product_map[$product_id]['spec_unit']];
                 }
 
-                $outstock_response=$outstock_func->new_outstock($hq_code,$orgz_id,$operator,19,$inventory_id,$product_info,
+                $outstock_response=$outstock_facade->new_outstock($hq_code,$orgz_id,$operator,19,$inventory_id,$product_info,
                     $operator,null,null,'盘点生成出库单');
 
                 if($outstock_response['code']!='0'){
