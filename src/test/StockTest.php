@@ -4,9 +4,9 @@
  * Date: 2017/8/31
  * Time: 上午10:22
  */
-namespace SuNong\StockControl\Test;
+namespace Sunong\StockControl\Test;
 
-use SuNong\StockControl\Facade\StockFacade;
+use Sunong\StockControl\Facade\StockFacade;
 
 class StockTest{
     /**

@@ -4,9 +4,9 @@
  * Date: 2017/8/22
  * Time: 下午12:59
  */
-namespace SuNong\StockControl\Model;
+namespace Sunong\StockControl\Model;
 
-use SuNong\StockControl\Core;
+use Sunong\StockControl\Core;
 
 class StockBatchContent extends Core{
     protected $table;

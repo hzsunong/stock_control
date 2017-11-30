@@ -4,12 +4,12 @@
  * Date: 2017/8/23
  * Time: 下午3:42
  */
-namespace SuNong\StockControl\Facade;
+namespace Sunong\StockControl\Facade;
 
 use Illuminate\Support\Facades\DB;
-use SuNong\StockControl\Model\Instock;
-use SuNong\StockControl\Model\InstockContent;
-use SuNong\StockControl\Model\StockBatch;
+use Sunong\StockControl\Model\Instock;
+use Sunong\StockControl\Model\InstockContent;
+use Sunong\StockControl\Model\StockBatch;
 
 class InstockFacade extends CommonFacade{
     //入库单相关方法

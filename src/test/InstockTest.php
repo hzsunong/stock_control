@@ -4,9 +4,9 @@
  * Date: 2017/8/30
  * Time: 下午4:19
  */
-namespace SuNong\StockControl\Test;
+namespace Sunong\StockControl\Test;
 
-use SuNong\StockControl\Facade\InstockFacade;
+use Sunong\StockControl\Facade\InstockFacade;
 
 class InstockTest{
 

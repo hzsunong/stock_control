@@ -4,7 +4,7 @@
  * Date: 2017/8/23
  * Time: 下午3:56
  */
-namespace SuNong\StockControl\Facade;
+namespace Sunong\StockControl\Facade;
 
 use Illuminate\Support\Facades\Log;
 

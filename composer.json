@@ -15,12 +15,12 @@
     },
     "autoload": {
         "psr-4": {
-            "SuNong\\StockControl\\": "src/",
-            "SuNong\\StockControl\\Model\\": "src/Model/",
-            "SuNong\\StockControl\\Func\\": "src/Func/",
-            "SuNong\\StockControl\\Facade\\": "src/Facade/",
-            "SuNong\\StockControl\\Test\\": "src/Test/",
-            "SuNong\\StockControl\\Service\\": "src/Service/"
+            "Sunong\\StockControl\\": "src/",
+            "Sunong\\StockControl\\Model\\": "src/Model/",
+            "Sunong\\StockControl\\Func\\": "src/Func/",
+            "Sunong\\StockControl\\Facade\\": "src/Facade/",
+            "Sunong\\StockControl\\Test\\": "src/Test/",
+            "Sunong\\StockControl\\Service\\": "src/Service/"
         }
     }
 }

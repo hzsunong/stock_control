@@ -4,7 +4,7 @@
  * Date: 2017/8/22
  * Time: 上午9:38
  */
-namespace SuNong\StockControl;
+namespace Sunong\StockControl;
 
 use App\Models\StockChangeRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -45,29 +45,32 @@ class Core extends Model{
 
     /**
      * @author Javen <w@juyii.com>
-     * @date 2017-08-22
-     * @param string $hq_code 企业编码
+     * @date 2017-11-22
+     * @param string $hq_code
      * @param string $table 表名
      * @param string $prefix 前缀 例如：GJ改价 CK出库
      * @param int $length 流水号位数
      * @return string 公共单据生成方法 传入公司编号 表明 前缀即可获取新单据编号
      */
-    public function order_create_code($hq_code,$table,$prefix,$length=4)
+    static public function order_create_code($hq_code,$table,$prefix,$length=4)
     {
-        $data = DB::table($table)->select('code')->where('hq_code', $hq_code)->orderBy('id', 'desc')->first();
-        if(empty($data)) return $prefix.substr(date('Ymd'),2,6).'0001';
-        $code=$data->code;
-        $code_date=substr($code,2,6);
-        $code_num=(int)substr($code,8,4)+1;
-        $now_date=substr(date('Ymd'),2,6);
-
-
-        if($now_date!=$code_date){
-            $code_num='0001';
+        $prefixLength=strlen($prefix);
+        $data = DB::table($table)->select('code')->where('hq_code', $hq_code)->orderBy('code', 'desc')->first();
+        if(empty($data)){
+            $code_num=1;
+            $now_date=substr(date('Ymd'),2,6);
         }else{
-            $code_num = str_pad($code_num, $length, "0", STR_PAD_LEFT);
-        }
+            $code=$data->code;
+            $code_date=substr($code,$prefixLength,6);
+            $now_date=substr(date('Ymd'),2,6);
+            if($now_date!=$code_date){
+                $code_num=1;
+            }else{
+                $code_num=(int)substr($code,$prefixLength+6,$length)+1;
+            }
 
+        }
+        $code_num = str_pad($code_num, $length, "0", STR_PAD_LEFT);
         return $prefix.$now_date.$code_num;
     }
 

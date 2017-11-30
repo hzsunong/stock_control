@@ -4,14 +4,14 @@
  * Date: 2017/8/23
  * Time: 下午11:41
  */
-namespace SuNong\StockControl\Facade;
+namespace Sunong\StockControl\Facade;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use SuNong\StockControl\Model\Stock;
-use SuNong\StockControl\Model\StockBatch;
+use Sunong\StockControl\Model\Stock;
+use Sunong\StockControl\Model\StockBatch;
 
-class StockFunc extends CommonFacade{
+class StockFacade extends CommonFacade{
 
     /**
      * @author Javen <w@juyii.com>

@@ -4,9 +4,9 @@
  * Date: 2017/8/31
  * Time: 下午1:47
  */
-namespace SuNong\StockControl\Test;
+namespace Sunong\StockControl\Test;
 
-use SuNong\StockControl\Facade\OutstockFacade;
+use Sunong\StockControl\Facade\OutstockFacade;
 
 class OutstockTest{
     public function new_outstock(){

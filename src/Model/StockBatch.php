@@ -4,10 +4,10 @@
  * Date: 2017/8/22
  * Time: 下午12:59
  */
-namespace SuNong\StockControl\Model;
+namespace Sunong\StockControl\Model;
 
 use Illuminate\Support\Facades\DB;
-use SuNong\StockControl\Core;
+use Sunong\StockControl\Core;
 
 class StockBatch extends Core{
     protected $table;

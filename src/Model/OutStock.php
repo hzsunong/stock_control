@@ -4,9 +4,9 @@
  * Date: 2017/8/22
  * Time: 下午12:59
  */
-namespace SuNong\StockControl\Model;
+namespace Sunong\StockControl\Model;
 
-use SuNong\StockControl\Core;
+use Sunong\StockControl\Core;
 
 class Outstock extends Core{
     protected $table;
@@ -34,13 +34,16 @@ class Outstock extends Core{
      * @param integer $outstock_id
      * @return null|array 获取未审核出库单详情列表
      */
-    public function get_unconfirmed_list_by_outstock_id($hq_code,$orgz_id,$outstock_id){
+    public function get_list_by_outstock_id($hq_code,$orgz_id,$outstock_id,$is_confirm){
         $data=$this->select('outstock_content.id as content_id','outstock_content.remark',
             'outstock_content.product_id','outstock_content.spec_unit','outstock_content.spec_num',
             'outstock_content.price','outstock_content.amount','outstock_content.quantity','outstock_content.package')
             ->join('outstock_content','outstock_content.outstock_id','=','outstock.id')
-            ->where('outstock.id',$outstock_id)->where('outstock.hq_code',$hq_code)->where('outstock.orgz_id',$orgz_id)
-            ->where('outstock.confirmed',0)->where('outstock.status',1)->where('outstock_content.status',1)->get();
+            ->where('outstock.id',$outstock_id)->where('outstock.hq_code',$hq_code)
+            ->where('outstock.orgz_id',$orgz_id)->where('outstock.outstock_status','!=',1)
+            ->where('outstock.status',1)->where('outstock_content.status',1);
+        if($is_confirm) $data->where('outstock.confirmed',0);
+        $data=$data->get();
         if(empty($data)) return null;
         return $data->toArray();
     }
