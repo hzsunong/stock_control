@@ -32,6 +32,7 @@ class Outstock extends Core{
      * @param string $hq_code
      * @param integer $orgz_id
      * @param integer $outstock_id
+     * @param integer $is_confirm 如果审核情况下要搜索未审核单据
      * @return null|array 获取未审核出库单详情列表
      */
     public function get_list_by_outstock_id($hq_code,$orgz_id,$outstock_id,$is_confirm){

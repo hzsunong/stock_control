@@ -281,7 +281,7 @@ class OutstockFacade extends CommonFacade{
         $outstock_model=new Outstock();
         $oc_model=new OutstockContent();
         $stock_batch_model=new StockBatch();
-        $products=$outstock_model->get_list_by_outstock_id($hqCode,$orgzId,$outstockId);
+        $products=$outstock_model->get_list_by_outstock_id($hqCode,$orgzId,$outstockId,$isConfirm);
         if($products==null){
             $result=['code'=>'10000','msg'=>'出库单审核失败:状态已变更'];
             $this->log_record('error',$userId,'出库单审核失败:状态已变更',$params);
